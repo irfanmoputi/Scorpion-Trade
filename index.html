@@ -467,8 +467,8 @@
 
             // ================= STATE PANEL KANAN: BRIDGE & SELECTOR =================
             const [brokerPreset, setBrokerPreset] = useState('stockity');
-            const [callSelector, setCallSelector] = useState('.deal-buttons__button_up, .btn-call, [data-test="deal-button-up"]');
-            const [putSelector, setPutSelector] = useState('.deal-buttons__button_down, .btn-put, [data-test="deal-button-down"]');
+            const [callSelector, setCallSelector] = useState('.deal-buttons__button_up, .btn-call, [data-test="deal-button-up"], button.bg-green, .vui-button--green');
+            const [putSelector, setPutSelector] = useState('.deal-buttons__button_down, .btn-put, [data-test="deal-button-down"], button.bg-red, .vui-button--red');
             const [amountSelector, setAmountSelector] = useState('input[name="amount"], .amount-input input');
             const [balanceSelector, setBalanceSelector] = useState('.header__balance-amount, .balance_current, [data-test="balance-amount"], .account-balance__amount');
             const [activeRightTab, setActiveRightTab] = useState('script'); // 'script' | 'guide' | 'config'
@@ -853,7 +853,15 @@
 
     // 1. Fungsi Pembaca Nominal Isi Akun (Saldo Real/Demo) Otomatis dari DOM Broker
     function readAndSyncBrokerBalance(isInitial = false) {
-        const balEl = document.querySelector(CONFIG.balanceSelector);
+        let balEl = document.querySelector(CONFIG.balanceSelector);
+        // Fallback otomatis mencari teks saldo "Rp" di bagian atas layar Stockity (seperti pada screenshot Anda)
+        if (!balEl) {
+            const allSpans = Array.from(document.querySelectorAll('span, div, p, strong'));
+            balEl = allSpans.find(el => {
+                const txt = (el.innerText || '').trim();
+                return /^Rp\s?[0-9.,]+/.test(txt) && el.children.length === 0 && el.getBoundingClientRect().top < 120;
+            });
+        }
         if (!balEl) return null;
         const rawText = balEl.innerText || balEl.textContent || "";
         const numericVal = parseInt(rawText.replace(/[^0-9]/g, ""), 10);
@@ -874,14 +882,37 @@
         return null;
     }
 
+    // Helper Pencari Tombol Hijau (NAIK) & Merah (TURUN) Otomatis jika class CSS berubah
+    function findTradeButton(direction) {
+        const selector = direction === "UP" ? CONFIG.callSelector : CONFIG.putSelector;
+        let btn = document.querySelector(selector);
+        if (btn) return btn;
+
+        // Auto-Scan berdasarkan warna latar tombol di bagian bawah layar Stockity/Binomo
+        const buttons = Array.from(document.querySelectorAll('button, [role="button"]')).filter(el => {
+            const rect = el.getBoundingClientRect();
+            return rect.width > 60 && rect.height > 32 && rect.top > window.innerHeight * 0.5;
+        });
+
+        for (const el of buttons) {
+            const bg = window.getComputedStyle(el).backgroundColor || '';
+            const m = bg.match(/rgb\\((\\d+),\\s*(\\d+),\\s*(\\d+)/);
+            if (m) {
+                const r = parseInt(m[1], 10), g = parseInt(m[2], 10);
+                if (direction === "UP" && g > r + 35 && g > 110) return el;
+                if (direction === "DOWN" && r > g + 35 && r > 140) return el;
+            }
+        }
+        return null;
+    }
+
     // 2. Fungsi Instant Shot (Tanpa Delay 1 Detikpun)
     function triggerZeroDelayShot(direction, amount) {
         const t0 = performance.now();
-        const selector = direction === "UP" ? CONFIG.callSelector : CONFIG.putSelector;
-        const targetBtn = document.querySelector(selector);
+        const targetBtn = findTradeButton(direction);
 
         if (!targetBtn) {
-            console.warn("[SCORPIONS KING] ⚠️ Tombol " + direction + " tidak ditemukan! Periksa Selector:", selector);
+            console.warn("[SCORPIONS KING] ⚠️ Tombol " + direction + " tidak ditemukan!");
             const hudStatus = document.getElementById('sk-hud-status');
             if (hudStatus) hudStatus.innerText = "⚠️ Tombol Tidak Ditemukan";
             return;
