@@ -1,0 +1,2349 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SCORPIONS KING - Royal Black & Gold Glossy Trading Engine</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Ccircle cx='60' cy='60' r='55' fill='none' stroke='%23D4AF37' stroke-width='6'/%3E%3Ccircle cx='60' cy='60' r='46' fill='none' stroke='%23FDE047' stroke-width='2.5'/%3E%3Cpath d='M45 72 Q65 55 78 42 Q85 25 72 22 Q64 22 68 35' fill='none' stroke='%23EAB308' stroke-width='8' stroke-linecap='round'/%3E%3Cellipse cx='55' cy='66' rx='18' ry='9' transform='rotate(-22 55 66)' fill='%23EAB308'/%3E%3C/svg%3E">
+    
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        obsidian: '#050507',
+                        charcoal: '#0D0D11',
+                        card: '#131318',
+                        crimson: {
+                            DEFAULT: '#D4AF37',
+                            matte: '#996515',
+                            glow: '#FACC15'
+                        },
+                        gold: {
+                            light: '#FEF08A',
+                            DEFAULT: '#EAB308',
+                            metallic: '#D4AF37',
+                            dark: '#854D0E'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- React & ReactDOM CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel Standalone -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        body {
+            background-color: #050507;
+            color: #F4F4F6;
+            overflow-x: hidden;
+        }
+        /* Custom Black & Gold Glossy Luxury Effects */
+        .bg-glossy-dark {
+            background: radial-gradient(circle at top right, rgba(234, 179, 8, 0.08), transparent 55%),
+                        linear-gradient(145deg, rgba(20, 18, 12, 0.96) 0%, rgba(7, 7, 10, 0.99) 100%);
+            backdrop-filter: blur(16px);
+        }
+        .border-glossy {
+            border: 1px solid rgba(234, 179, 8, 0.32);
+            box-shadow: inset 0 1px 0 0 rgba(254, 240, 138, 0.25), 0 12px 35px -10px rgba(0, 0, 0, 0.92), 0 0 25px -8px rgba(234, 179, 8, 0.15);
+        }
+        .matte-crimson {
+            background: linear-gradient(135deg, #FFFBEB 0%, #FDE047 35%, #D4AF37 70%, #854D0E 100%);
+            border: 1px solid rgba(254, 249, 195, 0.75);
+            color: #050507 !important;
+            box-shadow: 0 0 22px rgba(234, 179, 8, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.8);
+        }
+        .glossy-white-accent {
+            background: linear-gradient(180deg, #FFFBEB 0%, #FDE047 38%, #CA8A04 82%, #713F12 100%);
+            color: #050507 !important;
+            border: 1px solid rgba(254, 249, 195, 0.8);
+            box-shadow: 0 0 25px rgba(234, 179, 8, 0.45), inset 0 1px 2px rgba(255, 255, 255, 0.85);
+        }
+        .text-gold-glossy {
+            background: linear-gradient(180deg, #FFFFFF 0%, #FEF08A 30%, #EAB308 65%, #A16207 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 2px 12px rgba(234, 179, 8, 0.35));
+        }
+        .gold-shimmer-card {
+            background: radial-gradient(circle at top right, rgba(234, 179, 8, 0.14), transparent 60%),
+                        linear-gradient(145deg, #12100B 0%, #060608 100%);
+            border: 1px solid rgba(250, 204, 21, 0.35);
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.9), inset 0 1px 0 0 rgba(254, 249, 195, 0.25);
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #08080A;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #854D0E;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #EAB308;
+        }
+        @keyframes pulse-fast {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+        .animate-pulse-fast {
+            animation: pulse-fast 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+    </style>
+</head>
+<body class="min-h-screen antialiased selection:bg-amber-500 selection:text-black">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useMemo } = React;
+
+        // Komponen Logo 3D Metallic Golden Scorpion dengan Bingkai Cincin Ganda (Persis Gambar Terlampir)
+        const GoldenScorpionLogo = ({ size = 56 }) => (
+            <svg
+                width={size}
+                height={size}
+                viewBox="0 0 200 200"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="drop-shadow-[0_4px_12px_rgba(234,179,8,0.55)] shrink-0 select-none"
+            >
+                <defs>
+                    {/* Gradasi Cincin Emas Luar (3D Bevel Ring) */}
+                    <linearGradient id="outerGoldRing" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#FFFBEB" />
+                        <stop offset="18%" stopColor="#FDE047" />
+                        <stop offset="40%" stopColor="#D4AF37" />
+                        <stop offset="62%" stopColor="#854D0E" />
+                        <stop offset="82%" stopColor="#FACC15" />
+                        <stop offset="100%" stopColor="#713F12" />
+                    </linearGradient>
+
+                    {/* Gradasi Cincin Emas Dalam */}
+                    <linearGradient id="innerGoldRing" x1="100%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stopColor="#FEF08A" />
+                        <stop offset="35%" stopColor="#CA8A04" />
+                        <stop offset="70%" stopColor="#713F12" />
+                        <stop offset="100%" stopColor="#FDE047" />
+                    </linearGradient>
+
+                    {/* Gradasi Tubuh 3D Metallic Gold Scorpion */}
+                    <linearGradient id="scorpionGold3D" x1="15%" y1="10%" x2="85%" y2="90%">
+                        <stop offset="0%" stopColor="#FFFFFF" />
+                        <stop offset="18%" stopColor="#FEF08A" />
+                        <stop offset="45%" stopColor="#EAB308" />
+                        <stop offset="75%" stopColor="#A16207" />
+                        <stop offset="100%" stopColor="#451A03" />
+                    </linearGradient>
+
+                    {/* Gradasi Highlight Segmen Punggung & Capit */}
+                    <radialGradient id="goldSpecular" cx="35%" cy="30%" r="65%">
+                        <stop offset="0%" stopColor="#FFFFFF" />
+                        <stop offset="28%" stopColor="#FEF08A" />
+                        <stop offset="65%" stopColor="#CA8A04" />
+                        <stop offset="100%" stopColor="#5C3409" />
+                    </radialGradient>
+
+                    {/* Gradasi Bayangan Bawah Capit & Kaki */}
+                    <linearGradient id="darkGoldShade" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stopColor="#EAB308" />
+                        <stop offset="55%" stopColor="#854D0E" />
+                        <stop offset="100%" stopColor="#3B1D06" />
+                    </linearGradient>
+
+                    {/* Bayangan Lantai Halus di Bawah Kalajengking */}
+                    <radialGradient id="floorShadow" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stopColor="rgba(0,0,0,0.65)" />
+                        <stop offset="65%" stopColor="rgba(0,0,0,0.25)" />
+                        <stop offset="100%" stopColor="rgba(0,0,0,0)" />
+                    </radialGradient>
+                </defs>
+
+                {/* Latar Belakang Putih/Terang Bersih di Dalam Lingkaran (Sesuai Gambar Asli) */}
+                <circle cx="100" cy="100" r="93" fill="#FFFFFF" />
+
+                {/* Bayangan Halus di Bawah Kaki & Capit Kalajengking */}
+                <ellipse cx="98" cy="142" rx="58" ry="14" fill="url(#floorShadow)" />
+
+                {/* CINCIN EMAS LUAR (Tebal & Berkilau 3D) */}
+                <circle
+                    cx="100"
+                    cy="100"
+                    r="91"
+                    fill="none"
+                    stroke="url(#outerGoldRing)"
+                    strokeWidth="9.5"
+                />
+                <circle
+                    cx="100"
+                    cy="100"
+                    r="95.5"
+                    fill="none"
+                    stroke="#713F12"
+                    strokeWidth="0.8"
+                    opacity="0.7"
+                />
+
+                {/* CINCIN EMAS DALAM (Konsentris Berjarak Persis Gambar) */}
+                <circle
+                    cx="100"
+                    cy="100"
+                    r="77.5"
+                    fill="none"
+                    stroke="url(#innerGoldRing)"
+                    strokeWidth="4.2"
+                />
+
+                {/* ==================== KAKI-KAKI BELAKANG KIRI (DI ATAS/BELAKANG BADAN) ==================== */}
+                <g stroke="#5C3409" strokeWidth="0.8" strokeLinejoin="round">
+                    {/* Kaki Kiri 1 */}
+                    <path d="M84 108 L75 98 L65 113 L61 117 L66 118 L75 104 L84 111 Z" fill="url(#darkGoldShade)" />
+                    {/* Kaki Kiri 2 */}
+                    <path d="M95 103 L87 91 L76 107 L72 111 L77 112 L87 97 L95 106 Z" fill="url(#darkGoldShade)" />
+                    {/* Kaki Kiri 3 */}
+                    <path d="M107 98 L99 87 L89 102 L86 106 L91 106 L99 93 L107 101 Z" fill="url(#darkGoldShade)" />
+                </g>
+
+                {/* ==================== CAPIT KANAN BELAKANG (MENJULUR KE KIRI BAWAH) ==================== */}
+                <g stroke="#5C3409" strokeWidth="1" strokeLinejoin="round">
+                    {/* Lengan Capit Kiri */}
+                    <path
+                        d="M84 116 C75 109, 66 106, 59 111 C55 114, 59 121, 67 121 C73 121, 79 121, 84 119 Z"
+                        fill="url(#goldSpecular)"
+                    />
+                    {/* Kepala Capit Kiri Mengarah ke Kiri Bawah */}
+                    <path
+                        d="M61 111 C49 109, 40 116, 36 128 C34 134, 34 139, 36 140 C39 138, 43 131, 47 127 C51 124, 57 123, 62 119 Z"
+                        fill="url(#goldSpecular)"
+                    />
+                    {/* Jepitan Bawah Capit Kiri */}
+                    <path
+                        d="M58 119 C50 123, 44 129, 41 136 C45 134, 52 128, 60 122 Z"
+                        fill="url(#darkGoldShade)"
+                    />
+                </g>
+
+                {/* ==================== EKOR BERUAS MELENGKUNG TINGGI DI KANAN ATAS (5 RUAS + SENGAT) ==================== */}
+                <g stroke="#5C3409" strokeWidth="1.1" strokeLinejoin="round">
+                    {/* Ruas Ekor 1 (Pangkal Bawah) */}
+                    <path
+                        d="M132 103 C143 102, 152 94, 151 84 C149 77, 139 78, 134 85 C130 91, 129 98, 132 103 Z"
+                        fill="url(#goldSpecular)"
+                    />
+                    {/* Ruas Ekor 2 (Naik) */}
+                    <path
+                        d="M140 84 C152 83, 159 73, 156 63 C153 56, 142 58, 139 66 C136 73, 137 80, 140 84 Z"
+                        fill="url(#goldSpecular)"
+                    />
+                    {/* Ruas Ekor 3 (Melengkung Atas) */}
+                    <path
+                        d="M143 64 C154 60, 158 49, 151 41 C145 35, 135 40, 136 49 C136 56, 139 61, 143 64 Z"
+                        fill="url(#goldSpecular)"
+                    />
+                    {/* Ruas Ekor 4 (Puncak Lengkungan) */}
+                    <path
+                        d="M142 44 C147 36, 141 28, 130 31 C122 33, 118 41, 122 47 C127 51, 136 49, 142 44 Z"
+                        fill="url(#goldSpecular)"
+                    />
+                    {/* Kantung Sengat (Telson Bulat Berkilau) */}
+                    <path
+                        d="M124 41 C116 42, 112 51, 117 59 C121 65, 130 65, 132 58 C134 52, 130 43, 124 41 Z"
+                        fill="url(#goldSpecular)"
+                    />
+                    {/* Jarum Sengat Tajam Melengkung ke Bawah */}
+                    <path
+                        d="M128 60 C132 65, 133 72, 129 78 C128 73, 127 67, 123 62 Z"
+                        fill="url(#darkGoldShade)"
+                    />
+                </g>
+
+                {/* ==================== BADAN BERUAS 3D (MENGHADAP SERONG KIRI DEPAN) ==================== */}
+                <g stroke="#5C3409" strokeWidth="1.1" strokeLinejoin="round">
+                    {/* Segmen Pangkal Ekor */}
+                    <path
+                        d="M122 95 C132 92, 142 99, 141 108 C139 115, 129 117, 120 112 Z"
+                        fill="url(#goldSpecular)"
+                    />
+                    {/* Segmen Perut 5 */}
+                    <path
+                        d="M114 97 C125 93, 136 101, 135 112 C133 119, 122 121, 112 115 Z"
+                        fill="url(#goldSpecular)"
+                    />
+                    {/* Segmen Perut 4 */}
+                    <path
+                        d="M106 100 C118 96, 130 105, 128 116 C125 123, 114 125, 104 118 Z"
+                        fill="url(#goldSpecular)"
+                    />
+                    {/* Segmen Perut 3 */}
+                    <path
+                        d="M98 104 C110 99, 123 108, 121 120 C118 127, 106 129, 96 122 Z"
+                        fill="url(#goldSpecular)"
+                    />
+                    {/* Segmen Perut 2 */}
+                    <path
+                        d="M90 108 C102 103, 115 112, 113 124 C110 131, 98 133, 88 126 Z"
+                        fill="url(#goldSpecular)"
+                    />
+                    {/* Kepala / Cephalothorax (Bagian Depan Lebar Berkilau) */}
+                    <path
+                        d="M78 116 C86 107, 102 108, 106 119 C109 128, 97 136, 84 133 C76 131, 74 122, 78 116 Z"
+                        fill="url(#goldSpecular)"
+                    />
+                    {/* Detail Mata & Lekukan Kepala */}
+                    <ellipse cx="88" cy="117" rx="3.5" ry="2" transform="rotate(-18 88 117)" fill="#713F12" opacity="0.65" />
+                </g>
+
+                {/* ==================== KAKI-KAKI KANAN DEPAN (4 PASANG KAKI BERUAS REALISTIS) ==================== */}
+                <g stroke="#5C3409" strokeWidth="1" strokeLinejoin="round">
+                    {/* Kaki Kanan 1 (Depan) */}
+                    <path d="M102 128 L115 123 L123 139 L121 148 L125 149 L127 138 L117 119 L101 124 Z" fill="url(#scorpionGold3D)" />
+                    {/* Kaki Kanan 2 */}
+                    <path d="M111 124 L128 118 L139 135 L142 145 L147 146 L143 133 L130 114 L110 120 Z" fill="url(#scorpionGold3D)" />
+                    {/* Kaki Kanan 3 */}
+                    <path d="M120 119 L139 112 L153 129 L158 139 L164 139 L157 126 L141 107 L119 115 Z" fill="url(#scorpionGold3D)" />
+                </g>
+
+                {/* ==================== CAPIT DEPAN BESAR (MENonjol 3D DI TENGAH DEPAN) ==================== */}
+                <g stroke="#451A03" strokeWidth="1.2" strokeLinejoin="round">
+                    {/* Bahu & Lengan Capit Depan */}
+                    <path
+                        d="M94 128 C102 128, 111 133, 112 141 C112 148, 104 152, 97 148 C92 145, 91 135, 94 128 Z"
+                        fill="url(#goldSpecular)"
+                    />
+                    {/* Capit Utama Besar Mengarah ke Kiri Bawah */}
+                    <path
+                        d="M106 138 C100 132, 88 134, 78 142 C72 146, 65 148, 66 150 C68 152, 76 151, 83 149 C78 154, 70 158, 69 161 C71 163, 81 160, 90 155 C101 150, 109 145, 106 138 Z"
+                        fill="url(#goldSpecular)"
+                    />
+                    {/* Highlight Kilau Putih Emas pada Capit & Punggung */}
+                    <path
+                        d="M84 143 C90 139, 97 138, 101 141"
+                        stroke="#FFFBEB"
+                        strokeWidth="2.2"
+                        strokeLinecap="round"
+                        opacity="0.85"
+                    />
+                    <path
+                        d="M93 114 C103 108, 116 102, 128 97"
+                        stroke="#FFFBEB"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        opacity="0.7"
+                    />
+                </g>
+            </svg>
+        );
+
+        // Komponen Helper untuk Ikon Lucide agar selalu sinkron dengan React
+        const Icon = ({ name, size = 18, className = "" }) => {
+            const spanRef = useRef(null);
+            useEffect(() => {
+                if (spanRef.current && window.lucide) {
+                    spanRef.current.innerHTML = `<i data-lucide="${name}"></i>`;
+                    window.lucide.createIcons({
+                        root: spanRef.current,
+                        attrs: {
+                            width: size,
+                            height: size,
+                            class: className
+                        }
+                    });
+                }
+            }, [name, size, className]);
+            return <span ref={spanRef} className="inline-flex items-center justify-center shrink-0" />;
+        };
+
+        // Komponen Tooltip Penjelas untuk Pengguna Awam
+        const InfoTooltip = ({ text }) => {
+            return (
+                <div className="relative group inline-flex items-center ml-1.5 cursor-help align-middle">
+                    <span className="w-4 h-4 rounded-full bg-zinc-900 border border-amber-500/50 text-amber-300 flex items-center justify-center text-[10px] font-bold group-hover:bg-amber-400 group-hover:border-amber-200 group-hover:text-black transition-colors">
+                        ?
+                    </span>
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block w-64 p-2.5 bg-zinc-950/95 text-zinc-100 text-xs leading-relaxed rounded-xl border border-amber-500/40 shadow-2xl z-50 pointer-events-none backdrop-blur-md">
+                        {text}
+                        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-amber-500/40"></div>
+                    </div>
+                </div>
+            );
+        };
+
+        // Format Mata Uang Rupiah
+        const formatIDR = (number) => {
+            const prefix = number < 0 ? "-Rp " : "Rp ";
+            return prefix + Math.abs(Math.round(number)).toLocaleString('id-ID');
+        };
+
+        // Deskripsi Detail Strategi
+        const STRATEGIES = {
+            anti_sideway: {
+                id: 'anti_sideway',
+                name: 'Metode 1: Anti-Sideway (Ping-Pong)',
+                shortName: 'Anti-Sideway',
+                badge: 'Cocok Pasar Zig-Zag',
+                desc: 'Bot akan mengambil posisi BERLAWANAN arah jika transaksi sebelumnya PROFIT (WIN), atau mempertahankan arah kompensasi ketika pasar bergerak bolak-balik (Ping-Pong). Sangat ampuh di market yang tidak memiliki tren jelas.',
+            },
+            follow_trend: {
+                id: 'follow_trend',
+                name: 'Metode 2: Trend Panjang (Follow Trend)',
+                shortName: 'Follow Trend',
+                badge: 'Cocok Pasar Bullish/Bearish Kuat',
+                desc: 'Bot selalu membuka posisi MENGIKUTI warna candle terakhir yang baru saja tertutup. Jika candle terakhir Hijau (Naik), maka bot otomatis OP NAIK (CALL). Jika Merah (Turun), bot otomatis OP TURUN (PUT).',
+            },
+            reversal_5: {
+                id: 'reversal_5',
+                name: 'Metode 3: Reversal 5 Candle (Sniper)',
+                shortName: 'Reversal 5 Candle',
+                badge: 'Akurasi Tinggi / Sabar',
+                desc: 'Bot memantau pergerakan chart secara pasif dan HANYA akan mengeksekusi OP secara otomatis berbalik arah (Lawan Tren) tepat setelah mendeteksi 5 candle beruntun dengan warna yang sama.',
+            }
+        };
+
+        const App = () => {
+            // ================= STATE UTAMA BOT =================
+            const [botStatus, setBotStatus] = useState('STANDBY'); // 'STANDBY' | 'RUNNING' | 'PAUSED'
+            const [toastMsg, setToastMsg] = useState(null);
+
+            // ================= STATE PANEL KIRI: STRATEGI & KEUANGAN =================
+            const [selectedMethod, setSelectedMethod] = useState('anti_sideway');
+            const [baseAmount, setBaseAmount] = useState(14000);
+            const [payoutRate, setPayoutRate] = useState(85); // Persentase profit broker (default 85%)
+            const [martingaleEnabled, setMartingaleEnabled] = useState(true);
+            const [martingaleMultiplier, setMartingaleMultiplier] = useState(2.0);
+            const [maxMartingaleStep, setMaxMartingaleStep] = useState(3);
+            const [takeProfit, setTakeProfit] = useState(150000);
+            const [stopLoss, setStopLoss] = useState(100000);
+
+            // ================= STATE PANEL TENGAH: TIMING & SIMULATOR =================
+            const [secondsLeft, setSecondsLeft] = useState(60);
+            const [autoSimOnZero, setAutoSimOnZero] = useState(false);
+            const [candleHistory, setCandleHistory] = useState([
+                { id: 1, dir: 'UP', time: '12:01:00' },
+                { id: 2, dir: 'DOWN', time: '12:02:00' },
+                { id: 3, dir: 'UP', time: '12:03:00' },
+                { id: 4, dir: 'UP', time: '12:04:00' },
+                { id: 5, dir: 'DOWN', time: '12:05:00' },
+                { id: 6, dir: 'UP', time: '12:06:00' },
+            ]);
+            
+            // State Eksekusi & Perhitungan Martingale
+            const [currentStep, setCurrentStep] = useState(0);
+            const [pingPongSignal, setPingPongSignal] = useState('UP'); // Default arah awal Metode 1
+            const [cumulativeProfit, setCumulativeProfit] = useState(11900);
+            const [initialBalance, setInitialBalance] = useState(1000000); // Modal Awal Akun (Rp)
+            const [liveBrokerBalance, setLiveBrokerBalance] = useState(null); // Saldo terbaca langsung dari DOM Broker
+            const [lastBalanceSync, setLastBalanceSync] = useState(null);
+            const [accountType, setAccountType] = useState('REAL'); // 'REAL' | 'DEMO'
+
+            // State Zero-Delay Auto-Shot Engine (Presisi Milidetik Awal Menit)
+            const [msLeft, setMsLeft] = useState(0);
+            const [zeroDelayShot, setZeroDelayShot] = useState(true);
+            const [preShotLeadMs, setPreShotLeadMs] = useState(150); // Eksekusi 150ms sebelum detik 00.000 untuk kompensasi ping
+            const [shotCount, setShotCount] = useState(0);
+            const lastFiredMinuteRef = useRef(null);
+
+            // ================= STATE PANEL KANAN: BRIDGE & SELECTOR =================
+            const [brokerPreset, setBrokerPreset] = useState('stockity');
+            const [callSelector, setCallSelector] = useState('.deal-buttons__button_up, .btn-call, [data-test="deal-button-up"]');
+            const [putSelector, setPutSelector] = useState('.deal-buttons__button_down, .btn-put, [data-test="deal-button-down"]');
+            const [amountSelector, setAmountSelector] = useState('input[name="amount"], .amount-input input');
+            const [balanceSelector, setBalanceSelector] = useState('.header__balance-amount, .balance_current, [data-test="balance-amount"], .account-balance__amount');
+            const [activeRightTab, setActiveRightTab] = useState('script'); // 'script' | 'guide' | 'config'
+            const [copiedScript, setCopiedScript] = useState(false);
+
+            // ================= STATE FOOTER: LOG AKTIVITAS =================
+            const [tradeLogs, setTradeLogs] = useState([
+                {
+                    id: 'INIT-01',
+                    time: '12:05:00.012',
+                    method: 'Follow Trend',
+                    action: 'UP',
+                    candleResult: 'UP',
+                    status: 'WIN',
+                    amount: 14000,
+                    profitChange: 11900,
+                    totalProfit: 11900,
+                    balanceAfter: 1011900,
+                    latencyMs: 12,
+                    step: 0
+                }
+            ]);
+
+            // Helper Notifikasi Toast (Tanpa alert browser)
+            const showNotification = (title, message, type = 'info') => {
+                setToastMsg({ title, message, type });
+                setTimeout(() => {
+                    setToastMsg((prev) => (prev?.title === title ? null : prev));
+                }, 4000);
+            };
+
+            // ================= LOGIKA PRESET BROKER =================
+            const handleBrokerPresetChange = (preset) => {
+                setBrokerPreset(preset);
+                if (preset === 'stockity') {
+                    setCallSelector('.deal-buttons__button_up, .btn-call, [data-test="deal-button-up"]');
+                    setPutSelector('.deal-buttons__button_down, .btn-put, [data-test="deal-button-down"]');
+                    setBalanceSelector('.header__balance-amount, .balance_current, [data-test="balance-amount"], .account-balance__amount');
+                } else if (preset === 'binomo') {
+                    setCallSelector('.call-btn, vui-button.btn-up, [data-qa="call-button"]');
+                    setPutSelector('.put-btn, vui-button.btn-down, [data-qa="put-button"]');
+                    setBalanceSelector('.balance-info__sum, [data-qa="header-balance-amount"], .user-balance__amount');
+                }
+                showNotification('Preset Diubah', `Selector tombol & pembaca saldo disesuaikan untuk ${preset.toUpperCase()}.`, 'info');
+            };
+
+            // ================= LISTENER PEMBACA SALDO AKUN LIVE DARI BROKER =================
+            useEffect(() => {
+                const handleIncomingData = (data) => {
+                    if (!data) return;
+                    if (data.source === 'BROKER_DOM_READER_V1' && typeof data.balance === 'number' && !isNaN(data.balance)) {
+                        setLiveBrokerBalance(data.balance);
+                        setLastBalanceSync(data.time || new Date().toLocaleTimeString('id-ID', { hour12: false }));
+                        if (data.isInitialSync) {
+                            setInitialBalance(data.balance - cumulativeProfit);
+                        }
+                    }
+                };
+
+                let bc;
+                try {
+                    bc = new BroadcastChannel('bot_trading_engine_v1_channel');
+                    bc.onmessage = (ev) => handleIncomingData(ev.data);
+                } catch (e) {}
+
+                const storageHandler = (ev) => {
+                    if (ev.key === 'BOT_TRADING_LIVE_BALANCE' && ev.newValue) {
+                        try {
+                            handleIncomingData(JSON.parse(ev.newValue));
+                        } catch (e) {}
+                    }
+                };
+                window.addEventListener('storage', storageHandler);
+
+                return () => {
+                    if (bc) bc.close();
+                    window.removeEventListener('storage', storageHandler);
+                };
+            }, [cumulativeProfit]);
+
+            // ================= HITUNG STREAK CANDLE SAAT INI =================
+            const streakInfo = useMemo(() => {
+                if (candleHistory.length === 0) return { count: 0, dir: null };
+                const lastDir = candleHistory[candleHistory.length - 1].dir;
+                let count = 0;
+                for (let i = candleHistory.length - 1; i >= 0; i--) {
+                    if (candleHistory[i].dir === lastDir) count++;
+                    else break;
+                }
+                return { count, dir: lastDir };
+            }, [candleHistory]);
+
+            // ================= HITUNG SINYAL BERIKUTNYA SECARA REAL-TIME =================
+            const nextSignalData = useMemo(() => {
+                if (selectedMethod === 'anti_sideway') {
+                    return {
+                        signal: pingPongSignal,
+                        label: pingPongSignal === 'UP' ? 'NAIK (CALL)' : 'TURUN (PUT)',
+                        reason: 'Mode Ping-Pong aktif: Berpindah arah otomatis saat WIN untuk menghindari jebakan Sideway.'
+                    };
+                }
+                if (selectedMethod === 'follow_trend') {
+                    const lastCandle = candleHistory[candleHistory.length - 1]?.dir || 'UP';
+                    return {
+                        signal: lastCandle,
+                        label: lastCandle === 'UP' ? 'NAIK (CALL)' : 'TURUN (PUT)',
+                        reason: `Mengikuti arah penutupan candle terakhir (${lastCandle === 'UP' ? 'HIJAU / NAIK' : 'MERAH / TURUN'}).`
+                    };
+                }
+                if (selectedMethod === 'reversal_5') {
+                    if (streakInfo.count >= 5) {
+                        const reverseDir = streakInfo.dir === 'UP' ? 'DOWN' : 'UP';
+                        return {
+                            signal: reverseDir,
+                            label: reverseDir === 'UP' ? 'NAIK (CALL)' : 'TURUN (PUT)',
+                            reason: `Terdeteksi ${streakInfo.count} candle ${streakInfo.dir === 'UP' ? 'Hijau' : 'Merah'} beruntun! Sinyal Reversal siap dieksekusi.`
+                        };
+                    } else {
+                        return {
+                            signal: 'WAIT',
+                            label: `MENUNGGU (${streakInfo.count}/5 CANDLE)`,
+                            reason: `Baru terbentuk ${streakInfo.count} candle ${streakInfo.dir === 'UP' ? 'Hijau' : 'Merah'} searah. Bot menunggu hingga 5 candle beruntun.`
+                        };
+                    }
+                }
+                return { signal: 'UP', label: 'NAIK (CALL)', reason: '' };
+            }, [selectedMethod, pingPongSignal, candleHistory, streakInfo]);
+
+            // ================= HITUNG NOMINAL OP BERIKUTNYA (MARTINGALE) =================
+            const currentTradeAmount = useMemo(() => {
+                if (!martingaleEnabled || currentStep === 0) return Number(baseAmount) || 14000;
+                return Math.round((Number(baseAmount) || 14000) * Math.pow(Number(martingaleMultiplier) || 2, currentStep));
+            }, [baseAmount, martingaleEnabled, martingaleMultiplier, currentStep]);
+
+            // ================= BROADCAST SINYAL KE BROWSER CONSOLE / EXTENSION =================
+            const broadcastSignalToBroker = (signalDir, amount, methodLabel, isZeroDelay = false) => {
+                const now = new Date();
+                const payload = {
+                    source: 'BOT_TRADING_ENGINE_V1',
+                    timestamp: now.toISOString(),
+                    exactTimeMs: `${now.toLocaleTimeString('id-ID', { hour12: false })}.${String(now.getMilliseconds()).padStart(3, '0')}`,
+                    isZeroDelay,
+                    action: signalDir === 'UP' ? 'CALL' : 'PUT',
+                    direction: signalDir,
+                    amount: amount,
+                    method: methodLabel,
+                    selectors: {
+                        call: callSelector,
+                        put: putSelector,
+                        amount: amountSelector,
+                        balance: balanceSelector
+                    }
+                };
+                try {
+                    const bc = new BroadcastChannel('bot_trading_engine_v1_channel');
+                    bc.postMessage(payload);
+                    bc.close();
+                } catch (e) {}
+                try {
+                    localStorage.setItem('BOT_TRADING_LAST_SIGNAL', JSON.stringify(payload));
+                } catch (e) {}
+            };
+
+            // ================= FUNGSI INTI: SIMULASI & EKSEKUSI CANDLE =================
+            const handleTriggerCandle = (candleDirection, isAutoZeroShot = false) => {
+                const nowObj = new Date();
+                const msStr = String(nowObj.getMilliseconds()).padStart(3, '0');
+                const nowStr = `${nowObj.toLocaleTimeString('id-ID', { hour12: false })}.${msStr}`;
+                const executionLatency = isAutoZeroShot ? Math.floor(Math.random() * 6) + 2 : Math.floor(Math.random() * 18) + 8;
+                
+                // 1. Ambil sinyal aktif SEBELUM candle baru masuk
+                const activeSignal = nextSignalData.signal;
+                const activeMethodObj = STRATEGIES[selectedMethod];
+
+                // 2. Tambahkan candle baru ke riwayat visual
+                const updatedCandles = [
+                    ...candleHistory.slice(-13),
+                    { id: Date.now(), dir: candleDirection, time: nowObj.toLocaleTimeString('id-ID', { hour12: false }) }
+                ];
+                setCandleHistory(updatedCandles);
+
+                // 3. Evaluasi apakah Bot mengeksekusi transaksi atau hanya memantau
+                if (activeSignal === 'WAIT') {
+                    let newCount = 0;
+                    for (let i = updatedCandles.length - 1; i >= 0; i--) {
+                        if (updatedCandles[i].dir === candleDirection) newCount++;
+                        else break;
+                    }
+                    if (newCount >= 5) {
+                        showNotification(
+                            '5 Candle Searah Terdeteksi!',
+                            `Sinyal berikutnya siap OP ${candleDirection === 'UP' ? 'TURUN (PUT)' : 'NAIK (CALL)'}!`,
+                            'success'
+                        );
+                    } else {
+                        showNotification(
+                            'Monitoring Reversal 5 Candle',
+                            `Candle ${candleDirection === 'UP' ? 'HIJAU' : 'MERAH'} tercatat (${newCount}/5). Belum melakukan OP.`,
+                            'info'
+                        );
+                    }
+                    return;
+                }
+
+                // 4. Evaluasi Hasil Transaksi (WIN / LOSS)
+                const isWin = activeSignal === candleDirection;
+                const wager = currentTradeAmount;
+                const profitDelta = isWin ? Math.round(wager * (payoutRate / 100)) : -wager;
+                const updatedTotalProfit = cumulativeProfit + profitDelta;
+                const updatedAccountBalance = (liveBrokerBalance !== null ? liveBrokerBalance : initialBalance + cumulativeProfit) + profitDelta;
+
+                if (liveBrokerBalance !== null) {
+                    setLiveBrokerBalance(updatedAccountBalance);
+                }
+
+                // Broadcast sinyal ke Bridge Script jika bot sedang RUNNING
+                if (botStatus === 'RUNNING') {
+                    broadcastSignalToBroker(activeSignal, wager, activeMethodObj.shortName, isAutoZeroShot);
+                    setShotCount((prev) => prev + 1);
+                }
+
+                // 5. Update Step Martingale untuk OP selanjutnya
+                let nextMartingaleStep = currentStep;
+                if (isWin) {
+                    nextMartingaleStep = 0;
+                } else {
+                    if (martingaleEnabled) {
+                        nextMartingaleStep = currentStep + 1 > maxMartingaleStep ? 0 : currentStep + 1;
+                    } else {
+                        nextMartingaleStep = 0;
+                    }
+                }
+                setCurrentStep(nextMartingaleStep);
+
+                // 6. Update Arah Ping-Pong jika menggunakan Metode 1 (Anti-Sideway)
+                if (selectedMethod === 'anti_sideway') {
+                    if (isWin) {
+                        setPingPongSignal(activeSignal === 'UP' ? 'DOWN' : 'UP');
+                    } else {
+                        setPingPongSignal(activeSignal);
+                    }
+                }
+
+                // 7. Catat ke Tabel Log Aktivitas Real-Time
+                const newLogItem = {
+                    id: `OP-${Math.floor(1000 + Math.random() * 9000)}`,
+                    time: nowStr,
+                    method: activeMethodObj.shortName,
+                    action: activeSignal,
+                    candleResult: candleDirection,
+                    status: isWin ? 'WIN' : 'LOSS',
+                    amount: wager,
+                    profitChange: profitDelta,
+                    totalProfit: updatedTotalProfit,
+                    balanceAfter: updatedAccountBalance,
+                    latencyMs: executionLatency,
+                    step: currentStep
+                };
+
+                setTradeLogs((prev) => [newLogItem, ...prev]);
+                setCumulativeProfit(updatedTotalProfit);
+
+                // 8. Cek Target Profit Harian (Take Profit) & Batas Risiko (Stop Loss)
+                if (takeProfit > 0 && updatedTotalProfit >= takeProfit) {
+                    setBotStatus('PAUSED');
+                    showNotification(
+                        'TARGET PROFIT TERCAPAI! 🎯',
+                        `Profit sesi mencapai ${formatIDR(updatedTotalProfit)}. Bot otomatis dihentikan demi mengamankan profit.`,
+                        'success'
+                    );
+                } else if (stopLoss > 0 && updatedTotalProfit <= -Math.abs(stopLoss)) {
+                    setBotStatus('PAUSED');
+                    showNotification(
+                        'BATAS STOP LOSS TERCAPAI! 🛑',
+                        `Kerugian menyentuh batas risiko sesi (${formatIDR(updatedTotalProfit)}). Bot otomatis dihentikan.`,
+                        'danger'
+                    );
+                } else {
+                    showNotification(
+                        isWin ? `PROFIT (WIN) +${formatIDR(profitDelta)}` : `LOSS ${formatIDR(profitDelta)}`,
+                        `${isAutoZeroShot ? '⚡ [0.00s AUTO-SHOT] ' : ''}OP ${activeSignal === 'UP' ? 'NAIK' : 'TURUN'} ${formatIDR(wager)} (${executionLatency}ms).`,
+                        isWin ? 'success' : 'danger'
+                    );
+                }
+            };
+
+            // Simpan referensi fungsi agar timer presisi tinggi selalu memanggil state terbaru
+            const triggerRef = useRef(handleTriggerCandle);
+            const nextSignalRef = useRef(nextSignalData);
+            const currentAmountRef = useRef(currentTradeAmount);
+            useEffect(() => {
+                triggerRef.current = handleTriggerCandle;
+                nextSignalRef.current = nextSignalData;
+                currentAmountRef.current = currentTradeAmount;
+            });
+
+            // ================= HIGH-PRECISION ZERO-DELAY TIMER (requestAnimationFrame) =================
+            useEffect(() => {
+                let animFrameId;
+                const updateHighPrecisionClock = () => {
+                    const now = new Date();
+                    const sec = now.getSeconds();
+                    const ms = now.getMilliseconds();
+                    const currentMinuteKey = `${now.getHours()}:${now.getMinutes()}`;
+
+                    // Hitung total milidetik menuju pergantian menit berikutnya (detik 00.000)
+                    const totalMsRemaining = (59 - sec) * 1000 + (1000 - ms);
+                    setSecondsLeft(sec === 0 ? 0 : 60 - sec);
+                    setMsLeft(1000 - ms);
+
+                    // SISTEM KECEPATAN SHOT / OP OTOMATIS DI AWAL MENIT TANPA DELAY 1 DETIKPUN
+                    // Mengeksekusi tepat pada window preShotLeadMs (misal 150ms sebelum detik 00.000 atau tepat 00.000)
+                    if (
+                        botStatus === 'RUNNING' &&
+                        zeroDelayShot &&
+                        totalMsRemaining <= preShotLeadMs &&
+                        lastFiredMinuteRef.current !== currentMinuteKey
+                    ) {
+                        lastFiredMinuteRef.current = currentMinuteKey;
+                        const activeSig = nextSignalRef.current?.signal;
+
+                        if (activeSig && activeSig !== 'WAIT') {
+                            // Langsung tembak sinyal ke DOM Stockity/Binomo pada milidetik pergantian candle
+                            broadcastSignalToBroker(
+                                activeSig,
+                                currentAmountRef.current,
+                                STRATEGIES[selectedMethod].shortName,
+                                true
+                            );
+                            setShotCount((prev) => prev + 1);
+                        }
+
+                        // Jika Auto-Simulasi aktif, jalankan evaluasi candle tepat di detik 00.000
+                        if (autoSimOnZero) {
+                            const randomDir = Math.random() > 0.46 ? 'UP' : 'DOWN';
+                            triggerRef.current(randomDir, true);
+                        } else if (activeSig !== 'WAIT') {
+                            showNotification(
+                                '⚡ ZERO-DELAY SHOT TERKIRIM!',
+                                `Sinyal OP ${activeSig === 'UP' ? 'NAIK (CALL)' : 'TURUN (PUT)'} ditembakkan tepat di awal menit (${preShotLeadMs}ms Pre-Trigger).`,
+                                'success'
+                            );
+                        }
+                    }
+
+                    animFrameId = requestAnimationFrame(updateHighPrecisionClock);
+                };
+
+                animFrameId = requestAnimationFrame(updateHighPrecisionClock);
+                return () => cancelAnimationFrame(animFrameId);
+            }, [botStatus, zeroDelayShot, preShotLeadMs, autoSimOnZero, selectedMethod]);
+
+            // ================= GENERATE KODE JAVASCRIPT AUTO-CLICKER, BALANCE READER & ZERO-DELAY ENGINE =================
+            const generatedBridgeScript = useMemo(() => {
+                return `// =========================================================================
+// 🦂 SCORPIONS KING v1.0 - FLOATING HUD OVERLAY, ZERO-DELAY SHOT & BALANCE READER
+// Cara Pakai: Copy script ini -> Buka Tab ${brokerPreset === 'stockity' ? 'Stockity' : 'Binomo'} -> Tekan F12 (Console) -> Paste & Enter
+// =========================================================================
+(function() {
+    console.clear();
+    const CONFIG = {
+        broker: "${brokerPreset.toUpperCase()}",
+        strategy: "${STRATEGIES[selectedMethod].shortName}",
+        baseAmount: ${baseAmount},
+        martingale: ${martingaleEnabled},
+        multiplier: ${martingaleMultiplier},
+        maxStep: ${maxMartingaleStep},
+        preTriggerMs: ${preShotLeadMs},
+        callSelector: '${callSelector}',
+        putSelector: '${putSelector}',
+        amountSelector: '${amountSelector}',
+        balanceSelector: '${balanceSelector}'
+    };
+
+    const channel = new BroadcastChannel('bot_trading_engine_v1_channel');
+    let isAutoRunning = false;
+    let nextDirection = "${nextSignalData.signal === 'DOWN' ? 'DOWN' : 'UP'}";
+    let currentWager = ${currentTradeAmount};
+    let shotTotal = 0;
+
+    console.log("%c[🦂 SCORPIONS KING] Floating Overlay & Zero-Delay Sniper Aktif di " + CONFIG.broker + "!", "color:#FACC15; background:#050507; padding:6px 12px; border:1px solid #EAB308; border-radius:6px; font-weight:bold; font-size:13px;");
+
+    // 1. Fungsi Pembaca Nominal Isi Akun (Saldo Real/Demo) Otomatis dari DOM Broker
+    function readAndSyncBrokerBalance(isInitial = false) {
+        const balEl = document.querySelector(CONFIG.balanceSelector);
+        if (!balEl) return null;
+        const rawText = balEl.innerText || balEl.textContent || "";
+        const numericVal = parseInt(rawText.replace(/[^0-9]/g, ""), 10);
+        if (!isNaN(numericVal) && numericVal > 0) {
+            const payload = {
+                source: 'BROKER_DOM_READER_V1',
+                balance: numericVal,
+                rawText: rawText.trim(),
+                time: new Date().toLocaleTimeString('id-ID', { hour12: false }),
+                isInitialSync: isInitial
+            };
+            channel.postMessage(payload);
+            try { localStorage.setItem('BOT_TRADING_LIVE_BALANCE', JSON.stringify(payload)); } catch(e) {}
+            const hudBal = document.getElementById('sk-hud-balance');
+            if (hudBal) hudBal.innerText = "Rp " + numericVal.toLocaleString('id-ID');
+            return numericVal;
+        }
+        return null;
+    }
+
+    // 2. Fungsi Instant Shot (Tanpa Delay 1 Detikpun)
+    function triggerZeroDelayShot(direction, amount) {
+        const t0 = performance.now();
+        const selector = direction === "UP" ? CONFIG.callSelector : CONFIG.putSelector;
+        const targetBtn = document.querySelector(selector);
+
+        if (!targetBtn) {
+            console.warn("[SCORPIONS KING] ⚠️ Tombol " + direction + " tidak ditemukan! Periksa Selector:", selector);
+            const hudStatus = document.getElementById('sk-hud-status');
+            if (hudStatus) hudStatus.innerText = "⚠️ Tombol Tidak Ditemukan";
+            return;
+        }
+
+        ['pointerdown', 'mousedown', 'mouseup', 'click'].forEach(type => {
+            targetBtn.dispatchEvent(new MouseEvent(type, { bubbles: true, cancelable: true, view: window }));
+        });
+
+        shotTotal++;
+        const latency = (performance.now() - t0).toFixed(2);
+        const hudStatus = document.getElementById('sk-hud-status');
+        if (hudStatus) {
+            hudStatus.innerText = "⚡ SHOT " + (direction === "UP" ? "HIJAU" : "MERAH") + " (" + latency + "ms)";
+        }
+
+        console.log(
+            "%c[⚡ ZERO-DELAY SHOT " + latency + "ms] OP " + (direction === "UP" ? "NAIK (CALL) 🟢" : "TURUN (PUT) 🔴") + " | Rp " + amount.toLocaleString('id-ID'),
+            "background:#09090b; color:#FACC15; font-weight:bold; padding:4px 8px; border-left:4px solid " + (direction === "UP" ? "#22c55e" : "#ef4444")
+        );
+        setTimeout(() => readAndSyncBrokerBalance(false), 400);
+    }
+
+    // 3. Buat Panel Floating HUD SCORPIONS KING Langsung di Atas Chart Stockity / Binomo
+    const oldHud = document.getElementById('scorpions-king-floating-hud');
+    if (oldHud) oldHud.remove();
+
+    const hud = document.createElement('div');
+    hud.id = 'scorpions-king-floating-hud';
+    hud.style.cssText = 'position:fixed; top:72px; right:20px; width:300px; background:linear-gradient(145deg,#12100B,#050507); border:1.5px solid #EAB308; border-radius:16px; padding:14px; color:#F4F4F6; font-family:Inter,sans-serif; z-index:999999; box-shadow:0 15px 40px rgba(0,0,0,0.9), 0 0 25px rgba(234,179,8,0.25); user-select:none;';
+    hud.innerHTML = \`
+        <div id="sk-hud-drag" style="display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(234,179,8,0.25);padding-bottom:8px;margin-bottom:10px;cursor:move;">
+            <div style="display:flex;align-items:center;gap:8px;">
+                <span style="font-size:18px;">🦂</span>
+                <div>
+                    <div style="font-weight:900;font-size:13px;letter-spacing:1px;color:#FDE047;">SCORPIONS KING</div>
+                    <div style="font-size:10px;color:#A1A1AA;">\${CONFIG.broker} • \${CONFIG.strategy}</div>
+                </div>
+            </div>
+            <span id="sk-hud-badge" style="font-size:10px;font-weight:800;padding:3px 8px;border-radius:99px;background:#27272A;color:#FDE047;border:1px solid #EAB308;">READY</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;font-size:11px;">
+            <div style="background:#09090B;padding:7px 9px;border-radius:10px;border:1px solid rgba(234,179,8,0.2);">
+                <div style="color:#A1A1AA;font-size:9px;">SALDO TERBACA</div>
+                <div id="sk-hud-balance" style="font-weight:800;color:#FEF08A;margin-top:2px;">Membaca...</div>
+            </div>
+            <div style="background:#09090B;padding:7px 9px;border-radius:10px;border:1px solid rgba(234,179,8,0.2);">
+                <div style="color:#A1A1AA;font-size:9px;">DETIK CANDLE</div>
+                <div id="sk-hud-timer" style="font-weight:800;color:#22C55E;font-family:monospace;font-size:13px;margin-top:2px;">00:00.000</div>
+            </div>
+        </div>
+        <div style="background:#09090B;padding:8px 10px;border-radius:10px;border:1px solid rgba(255,255,255,0.08);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;font-size:11px;">
+            <span>Sinyal: <strong id="sk-hud-dir" style="color:#22C55E;">\${nextDirection === 'UP' ? 'NAIK (CALL)' : 'TURUN (PUT)'}</strong></span>
+            <span id="sk-hud-status" style="font-size:10px;color:#FACC15;">Standby 00.000s</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;">
+            <button id="sk-btn-call" style="padding:8px;border-radius:9px;background:#16A34A;color:#050507;font-weight:800;font-size:11px;border:none;cursor:pointer;">⚡ SHOT HIJAU</button>
+            <button id="sk-btn-put" style="padding:8px;border-radius:9px;background:#DC2626;color:#FFFFFF;font-weight:800;font-size:11px;border:none;cursor:pointer;">⚡ SHOT MERAH</button>
+        </div>
+        <button id="sk-btn-toggle" style="width:100%;padding:9px;border-radius:10px;background:linear-gradient(180deg,#FEF08A,#CA8A04);color:#050507;font-weight:900;font-size:11px;border:none;cursor:pointer;letter-spacing:0.5px;">
+            ▶ AKTIFKAN AUTO-SHOT AWAL MENIT (00:00)
+        </button>
+    \`;
+    document.body.appendChild(hud);
+
+    // Fitur Geser (Drag) Panel HUD di Layar Broker
+    let isDragging = false, offsetX = 0, offsetY = 0;
+    const dragHeader = document.getElementById('sk-hud-drag');
+    dragHeader.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        offsetX = e.clientX - hud.getBoundingClientRect().left;
+        offsetY = e.clientY - hud.getBoundingClientRect().top;
+    });
+    window.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        hud.style.right = 'auto';
+        hud.style.left = (e.clientX - offsetX) + 'px';
+        hud.style.top = (e.clientY - offsetY) + 'px';
+    });
+    window.addEventListener('mouseup', () => { isDragging = false; });
+
+    // Event Tombol pada Floating HUD
+    document.getElementById('sk-btn-call').onclick = () => {
+        nextDirection = "UP";
+        document.getElementById('sk-hud-dir').innerText = "NAIK (CALL)";
+        document.getElementById('sk-hud-dir').style.color = "#22C55E";
+        triggerZeroDelayShot("UP", currentWager);
+    };
+    document.getElementById('sk-btn-put').onclick = () => {
+        nextDirection = "DOWN";
+        document.getElementById('sk-hud-dir').innerText = "TURUN (PUT)";
+        document.getElementById('sk-hud-dir').style.color = "#EF4444";
+        triggerZeroDelayShot("DOWN", currentWager);
+    };
+    document.getElementById('sk-btn-toggle').onclick = function() {
+        isAutoRunning = !isAutoRunning;
+        const badge = document.getElementById('sk-hud-badge');
+        if (isAutoRunning) {
+            this.innerText = "⏹ HENTIKAN AUTO-SHOT";
+            this.style.background = "#DC2626";
+            this.style.color = "#FFFFFF";
+            badge.innerText = "RUNNING";
+            badge.style.background = "#16A34A";
+            badge.style.color = "#050507";
+        } else {
+            this.innerText = "▶ AKTIFKAN AUTO-SHOT AWAL MENIT (00:00)";
+            this.style.background = "linear-gradient(180deg,#FEF08A,#CA8A04)";
+            this.style.color = "#050507";
+            badge.innerText = "PAUSED";
+            badge.style.background = "#27272A";
+            badge.style.color = "#FDE047";
+        }
+    };
+
+    // 4. Loop Presisi Tinggi untuk Countdown & Auto-Shot Tepat Detik 00.000
+    let lastMinuteKey = "";
+    function tickSniperEngine() {
+        const now = new Date();
+        const sec = now.getSeconds();
+        const ms = now.getMilliseconds();
+        const minKey = now.getHours() + ":" + now.getMinutes();
+        const remSec = sec === 0 ? 0 : 60 - sec;
+        const remMs = (59 - sec) * 1000 + (1000 - ms);
+
+        const timerEl = document.getElementById('sk-hud-timer');
+        if (timerEl) {
+            timerEl.innerText = "00:" + String(remSec).padStart(2, '0') + "." + String(1000 - ms).padStart(3, '0');
+            timerEl.style.color = remSec <= 3 ? "#FACC15" : "#22C55E";
+        }
+
+        if (isAutoRunning && remMs <= CONFIG.preTriggerMs && lastMinuteKey !== minKey) {
+            lastMinuteKey = minKey;
+            triggerZeroDelayShot(nextDirection, currentWager);
+            if (CONFIG.strategy === "Anti-Sideway") {
+                nextDirection = nextDirection === "UP" ? "DOWN" : "UP";
+                const dirEl = document.getElementById('sk-hud-dir');
+                if (dirEl) {
+                    dirEl.innerText = nextDirection === "UP" ? "NAIK (CALL)" : "TURUN (PUT)";
+                    dirEl.style.color = nextDirection === "UP" ? "#22C55E" : "#EF4444";
+                }
+            }
+        }
+        requestAnimationFrame(tickSniperEngine);
+    }
+    requestAnimationFrame(tickSniperEngine);
+
+    // Pantau perubahan saldo setiap 1 detik
+    readAndSyncBrokerBalance(true);
+    setInterval(() => readAndSyncBrokerBalance(false), 1000);
+
+    // 5. Terima Sinyal Instan dari Dashboard Web SCORPIONS KING
+    channel.onmessage = (event) => {
+        const data = event.data;
+        if (data && data.source === 'BOT_TRADING_ENGINE_V1') {
+            nextDirection = data.direction;
+            currentWager = data.amount;
+            triggerZeroDelayShot(data.direction, data.amount);
+        }
+    };
+
+    window.testBotClick = (dir = "UP") => triggerZeroDelayShot(dir, currentWager);
+    window.syncSaldoBroker = () => console.log("Saldo Terbaca:", readAndSyncBrokerBalance(true));
+})();`;
+            }, [brokerPreset, selectedMethod, baseAmount, martingaleEnabled, martingaleMultiplier, maxMartingaleStep, nextSignalData, preShotLeadMs, callSelector, putSelector, amountSelector, balanceSelector, currentTradeAmount]);
+
+            // Fungsi Simulasi Tarik Saldo dari DOM Stockity/Binomo (One-Click Sync)
+            const handleSimulateDomBalanceRead = () => {
+                const simulatedRead = liveBrokerBalance !== null
+                    ? liveBrokerBalance
+                    : initialBalance + cumulativeProfit;
+                const nowTime = new Date().toLocaleTimeString('id-ID', { hour12: false });
+                setLiveBrokerBalance(simulatedRead);
+                setLastBalanceSync(nowTime);
+                showNotification(
+                    'Saldo Broker Tersinkronisasi!',
+                    `Nominal isi akun ${brokerPreset.toUpperCase()} (${accountType}) terbaca: ${formatIDR(simulatedRead)} pada ${nowTime}.`,
+                    'success'
+                );
+            };
+
+            // Fungsi Copy Script ke Clipboard (Kompatibel dengan iFrame)
+            const handleCopyScript = () => {
+                const textarea = document.createElement('textarea');
+                textarea.value = generatedBridgeScript;
+                document.body.appendChild(textarea);
+                textarea.select();
+                try {
+                    document.execCommand('copy');
+                    setCopiedScript(true);
+                    showNotification('Script Disalin!', 'Tempel (Paste) script ke tab Console (F12) di halaman Stockity/Binomo Anda.', 'success');
+                    setTimeout(() => setCopiedScript(false), 3000);
+                } catch (err) {
+                    showNotification('Gagal Menyalin', 'Silakan blok dan salin kode secara manual.', 'danger');
+                }
+                document.body.removeChild(textarea);
+            };
+
+            // Fungsi Reset Log & Statistik
+            const handleResetLogs = () => {
+                setTradeLogs([]);
+                setCumulativeProfit(0);
+                setCurrentStep(0);
+                showNotification('Log Direset', 'Semua riwayat transaksi, step Martingale, dan akumulasi profit telah dikembalikan ke 0.', 'info');
+            };
+
+            // Fungsi Download File index.html Siap Upload ke Vercel
+            const handleDownloadVercelBundle = () => {
+                const fullHtml = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+                const blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'index.html';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showNotification('File index.html Diunduh!', 'File SCORPIONS KING siap di-upload ke GitHub atau Vercel.', 'success');
+            };
+
+            // Fungsi Download File Konfigurasi vercel.json
+            const handleDownloadVercelConfig = () => {
+                const vercelJson = JSON.stringify({
+                    name: "scorpions-king-bot",
+                    version: 2,
+                    cleanUrls: true,
+                    framework: null
+                }, null, 2);
+                const blob = new Blob([vercelJson], { type: 'application/json;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'vercel.json';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showNotification('vercel.json Diunduh!', 'Simpan vercel.json satu folder dengan index.html.', 'success');
+            };
+
+            // Fungsi Export Laporan ke CSV
+            const handleExportCSV = () => {
+                if (tradeLogs.length === 0) {
+                    showNotification('Data Kosong', 'Belum ada riwayat transaksi untuk diekspor.', 'danger');
+                    return;
+                }
+                const headers = ['ID,Waktu,Metode,Aksi OP,Candle Aktual,Status,Step Martingale,Nominal (IDR),Profit/Loss (IDR),Profit Kumulatif (IDR)'];
+                const rows = tradeLogs.map(log =>
+                    `${log.id},${log.time},"${log.method}",${log.action === 'UP' ? 'NAIK (CALL)' : 'TURUN (PUT)'},${log.candleResult},${log.status},Step ${log.step},${log.amount},${log.profitChange},${log.totalProfit}`
+                );
+                const csvContent = "data:text/csv;charset=utf-8," + [headers, ...rows].join("\n");
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", `Laporan_Trading_Bot_${new Date().toISOString().slice(0,10)}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                showNotification('Laporan Diekspor!', 'File CSV berhasil diunduh ke perangkat Anda.', 'success');
+            };
+
+            // Statistik Ringkas & Perhitungan Nilai Profit / Loss Sesi Trading Saat Ini
+            const stats = useMemo(() => {
+                const total = tradeLogs.length;
+                const winLogs = tradeLogs.filter(l => l.status === 'WIN');
+                const lossLogs = tradeLogs.filter(l => l.status === 'LOSS');
+                const wins = winLogs.length;
+                const losses = lossLogs.length;
+                const winRate = total > 0 ? Math.round((wins / total) * 100) : 0;
+
+                // Total Nilai Profit Kotor (Gross Profit) & Nilai Loss Kotor (Gross Loss) pada sesi ini
+                const grossProfitValue = winLogs.reduce((acc, item) => acc + Math.max(0, item.profitChange), 0);
+                const grossLossValue = lossLogs.reduce((acc, item) => acc + Math.abs(Math.min(0, item.profitChange)), 0);
+                const totalTurnover = tradeLogs.reduce((acc, item) => acc + item.amount, 0);
+                const netSessionProfit = grossProfitValue - grossLossValue;
+                const currentActiveBalance = liveBrokerBalance !== null ? liveBrokerBalance : initialBalance + netSessionProfit;
+                const roiPercent = initialBalance > 0 ? ((netSessionProfit / initialBalance) * 100).toFixed(2) : '0.00';
+
+                return {
+                    total,
+                    wins,
+                    losses,
+                    winRate,
+                    grossProfitValue,
+                    grossLossValue,
+                    totalTurnover,
+                    netSessionProfit,
+                    currentActiveBalance,
+                    roiPercent
+                };
+            }, [tradeLogs, initialBalance, liveBrokerBalance]);
+
+            return (
+                <div className="min-h-screen flex flex-col bg-obsidian text-zinc-100 pb-10">
+                    {/* Ambient Gold Glossy Glow Latar Belakang */}
+                    <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+                        <div className="absolute -top-40 -left-40 w-96 h-96 bg-amber-500/15 rounded-full blur-3xl"></div>
+                        <div className="absolute top-1/3 right-0 w-96 h-96 bg-yellow-600/10 rounded-full blur-3xl"></div>
+                    </div>
+
+                    {/* Toast Notification Floating */}
+                    {toastMsg && (
+                        <div className="fixed bottom-5 right-5 z-50 max-w-sm w-full bg-zinc-900/95 border border-zinc-700 rounded-2xl p-4 shadow-2xl backdrop-blur-xl flex items-start gap-3 transition-all">
+                            <div className={`p-2 rounded-xl shrink-0 ${
+                                toastMsg.type === 'success' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' :
+                                toastMsg.type === 'danger' ? 'bg-red-500/20 text-red-400 border border-red-500/30' :
+                                'bg-zinc-800 text-zinc-200 border border-zinc-600'
+                            }`}>
+                                <Icon name={toastMsg.type === 'success' ? 'check-circle-2' : toastMsg.type === 'danger' ? 'shield-alert' : 'bell'} size={20} />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <h4 className="text-sm font-bold text-white">{toastMsg.title}</h4>
+                                <p className="text-xs text-zinc-300 mt-0.5 leading-relaxed">{toastMsg.message}</p>
+                            </div>
+                            <button onClick={() => setToastMsg(null)} className="text-zinc-500 hover:text-white">
+                                <Icon name="x" size={16} />
+                            </button>
+                        </div>
+                    )}
+
+                    {/* =====================================================================
+                        1. HEADER UTAMA (TOP BAR)
+                    ===================================================================== */}
+                    <header className="sticky top-0 z-40 bg-obsidian/90 backdrop-blur-xl border-b border-amber-500/25 shadow-2xl">
+                        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-4">
+                            
+                            {/* Kiri: Brand Logo Kalajengking Emas Lingkaran Ganda & Judul SCORPIONS KING */}
+                            <div className="flex items-center gap-3.5">
+                                <div className="relative group">
+                                    <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-amber-300 via-yellow-500 to-amber-700 opacity-60 blur-sm group-hover:opacity-100 transition duration-300"></div>
+                                    <div className="relative w-14 h-14 rounded-full bg-white border border-amber-300/80 flex items-center justify-center shadow-[0_0_28px_rgba(234,179,8,0.55)] overflow-hidden">
+                                        <GoldenScorpionLogo size={56} />
+                                    </div>
+                                </div>
+                                <div>
+                                    <div className="flex items-center gap-2.5 flex-wrap">
+                                        <h1 className="text-xl sm:text-2xl font-black tracking-widest text-gold-glossy uppercase">
+                                            SCORPIONS KING
+                                        </h1>
+                                        <span className="font-mono text-[10px] font-black px-2.5 py-0.5 rounded-md glossy-white-accent tracking-wider uppercase">
+                                            ROYAL GOLD EDITION
+                                        </span>
+                                        
+                                        {/* Status Badge Live */}
+                                        <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase border ${
+                                            botStatus === 'RUNNING'
+                                                ? 'bg-amber-950/90 text-amber-300 border-amber-400/70 shadow-[0_0_20px_rgba(234,179,8,0.45)]'
+                                                : botStatus === 'PAUSED'
+                                                ? 'bg-red-950/80 text-red-300 border-red-500/40'
+                                                : 'bg-zinc-900/90 text-amber-200/70 border-amber-500/30'
+                                        }`}>
+                                            <span className={`w-2 h-2 rounded-full ${
+                                                botStatus === 'RUNNING' ? 'bg-amber-400 animate-ping' :
+                                                botStatus === 'PAUSED' ? 'bg-red-400' : 'bg-amber-500/60'
+                                            }`}></span>
+                                            <span>{botStatus}</span>
+                                        </div>
+                                    </div>
+                                    <p className="text-xs text-amber-200/80 mt-0.5 flex items-center gap-2">
+                                        <span className="font-semibold text-amber-300">🦂 Golden Scorpion Sniper Engine (Stockity & Binomo)</span>
+                                        <span className="text-amber-500/40">•</span>
+                                        <span className="text-amber-400 font-semibold flex items-center gap-1">
+                                            <Icon name="zap" size={12} />
+                                            Zero-Delay 00.000s Auto-Shot
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Tengah: Ringkasan Saldo Broker, Nilai Profit & Nilai Loss Sesi Saat Ini */}
+                            <div className="hidden xl:flex items-center gap-5 bg-zinc-950/90 border border-amber-500/30 px-5 py-2 rounded-2xl shadow-[inset_0_1px_0_rgba(254,240,138,0.15)]">
+                                <div>
+                                    <div className="flex items-center gap-1.5">
+                                        <span className="text-[10px] text-amber-300/80 uppercase tracking-wider">Isi Saldo ({brokerPreset.toUpperCase()})</span>
+                                        <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded ${accountType === 'REAL' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' : 'bg-zinc-800 text-zinc-300'}`}>
+                                            {accountType}
+                                        </span>
+                                    </div>
+                                    <span className="font-mono text-sm font-extrabold text-gold-glossy">{formatIDR(stats.currentActiveBalance)}</span>
+                                </div>
+                                <div className="h-7 w-px bg-amber-500/20"></div>
+                                <div>
+                                    <span className="text-[10px] text-emerald-400/90 uppercase tracking-wider block">Nilai Profit Sesi</span>
+                                    <span className="font-mono text-sm font-bold text-emerald-400">+{formatIDR(stats.grossProfitValue)}</span>
+                                </div>
+                                <div className="h-7 w-px bg-amber-500/20"></div>
+                                <div>
+                                    <span className="text-[10px] text-red-400/90 uppercase tracking-wider block">Nilai Loss Sesi</span>
+                                    <span className="font-mono text-sm font-bold text-red-400">-{formatIDR(stats.grossLossValue)}</span>
+                                </div>
+                                <div className="h-7 w-px bg-amber-500/20"></div>
+                                <div>
+                                    <span className="text-[10px] text-amber-300/80 uppercase tracking-wider block">Net Sesi ({stats.roiPercent}%)</span>
+                                    <span className={`font-mono text-sm font-bold ${stats.netSessionProfit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                        {stats.netSessionProfit >= 0 ? '+' : ''}{formatIDR(stats.netSessionProfit)}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Kanan: Tombol Kontrol Cepat START & STOP BOT (Tanpa Tombol Deploy Vercel) */}
+                            <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end flex-wrap">
+                                <button
+                                    onClick={() => {
+                                        setBotStatus('RUNNING');
+                                        showNotification('SCORPIONS KING AKTIF 🦂', `Menjalankan ${STRATEGIES[selectedMethod].shortName}. Siap menembakkan sinyal Zero-Delay.`, 'success');
+                                    }}
+                                    disabled={botStatus === 'RUNNING'}
+                                    className={`flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-extrabold text-xs sm:text-sm tracking-wide transition-all ${
+                                        botStatus === 'RUNNING'
+                                            ? 'bg-amber-950/40 text-amber-600 border border-amber-900/50 cursor-not-allowed'
+                                            : 'glossy-white-accent hover:brightness-110 active:scale-95'
+                                    }`}
+                                >
+                                    <Icon name="play" size={16} />
+                                    <span>START BOT</span>
+                                </button>
+
+                                <button
+                                    onClick={() => {
+                                        if (botStatus !== 'STANDBY') {
+                                            setBotStatus('PAUSED');
+                                            showNotification('BOT DIHENTIKAN', 'Eksekusi sinyal otomatis dijeda (Paused).', 'danger');
+                                        }
+                                    }}
+                                    disabled={botStatus === 'STANDBY'}
+                                    className={`flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm tracking-wide transition-all ${
+                                        botStatus === 'STANDBY'
+                                            ? 'bg-zinc-900 text-zinc-600 border border-zinc-800 cursor-not-allowed'
+                                            : 'bg-gradient-to-r from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 text-white border border-red-400/30 shadow-[0_0_25px_rgba(220,38,38,0.4)] active:scale-95'
+                                    }`}
+                                >
+                                    <Icon name="square" size={16} />
+                                    <span>STOP BOT</span>
+                                </button>
+                            </div>
+                        </div>
+                    </header>
+
+                    {/* =====================================================================
+                        MAIN DASHBOARD GRID (3 KOLOM TERSTRUKTUR & BERSIH)
+                    ===================================================================== */}
+                    <main className="relative z-10 max-w-[1600px] w-full mx-auto px-4 sm:px-6 pt-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                        
+                        {/* =================================================================
+                            2. PANEL KIRI: PENGATURAN STRATEGI & METODE (4 KOLOM)
+                        ================================================================= */}
+                        <section className="lg:col-span-4 bg-glossy-dark border-glossy rounded-2xl p-5 flex flex-col gap-5">
+                            {/* Header Panel Kiri */}
+                            <div className="flex items-center justify-between border-b border-amber-500/20 pb-3.5">
+                                <div className="flex items-center gap-2.5">
+                                    <span className="w-8 h-8 rounded-xl matte-crimson flex items-center justify-center font-bold">
+                                        <Icon name="sliders" size={16} />
+                                    </span>
+                                    <div>
+                                        <h2 className="text-sm font-bold uppercase tracking-wider text-gold-glossy">1. Akun, Strategi & Keuangan</h2>
+                                        <p className="text-[11px] text-zinc-400">Sinkronisasi saldo broker & manajemen modal</p>
+                                    </div>
+                                </div>
+                                <span className="text-[11px] font-mono px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 font-bold">
+                                    Payout {payoutRate}%
+                                </span>
+                            </div>
+
+                            {/* FITUR BARU: NOMINAL ISI AKUN (BACA DARI SALDO STOCKITY / BINOMO) */}
+                            <div className="p-3.5 rounded-2xl bg-gradient-to-br from-zinc-900 via-zinc-950 to-black border border-amber-500/30 space-y-3 shadow-inner">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-1.5">
+                                        <Icon name="wallet" size={15} className="text-amber-400" />
+                                        <span className="text-xs font-bold text-amber-200 uppercase tracking-wide">
+                                            Nominal Isi Akun ({brokerPreset === 'stockity' ? 'Stockity' : 'Binomo'})
+                                        </span>
+                                        <InfoTooltip text="Membaca nominal saldo akun langsung dari elemen halaman Stockity/Binomo ketika Bridge Script aktif, atau dapat Anda sesuaikan secara manual sesuai modal awal sesi." />
+                                    </div>
+
+                                    {/* Switcher Akun Real / Demo */}
+                                    <div className="flex bg-zinc-950 p-0.5 rounded-lg border border-amber-500/30 text-[10px] font-bold">
+                                        <button
+                                            type="button"
+                                            onClick={() => setAccountType('REAL')}
+                                            className={`px-2 py-0.5 rounded-md transition-all ${accountType === 'REAL' ? 'glossy-white-accent' : 'text-zinc-400'}`}
+                                        >
+                                            REAL
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setAccountType('DEMO')}
+                                            className={`px-2 py-0.5 rounded-md transition-all ${accountType === 'DEMO' ? 'bg-zinc-700 text-white' : 'text-zinc-400'}`}
+                                        >
+                                            DEMO
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Tampilan Saldo Aktif & Tombol Sync DOM */}
+                                <div className="flex items-center justify-between gap-2 bg-black/60 p-2.5 rounded-xl border border-amber-500/20">
+                                    <div>
+                                        <span className="text-[10px] text-zinc-400 block">
+                                            {liveBrokerBalance !== null ? `Terbaca Live dari DOM (${lastBalanceSync})` : 'Saldo Sesi Saat Ini (Terhitung Otomatis)'}
+                                        </span>
+                                        <div className="font-mono text-lg font-extrabold text-gold-glossy tracking-tight flex items-center gap-2">
+                                            <span>{formatIDR(stats.currentActiveBalance)}</span>
+                                            {liveBrokerBalance !== null && (
+                                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 font-sans font-bold">
+                                                    DOM SYNCED
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={handleSimulateDomBalanceRead}
+                                        className="px-3 py-2 rounded-xl glossy-white-accent text-[11px] font-extrabold flex items-center gap-1.5 shrink-0 transition-all active:scale-95"
+                                    >
+                                        <Icon name="refresh-cw" size={13} />
+                                        <span>Baca Saldo</span>
+                                    </button>
+                                </div>
+
+                                {/* Input Modal Awal Sesi */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-0.5">
+                                    <div>
+                                        <label className="text-[10px] text-zinc-400 block mb-1">Set Modal Awal Sesi (IDR):</label>
+                                        <div className="relative flex items-center">
+                                            <span className="absolute left-2.5 text-[11px] font-mono text-zinc-400">Rp</span>
+                                            <input
+                                                type="number"
+                                                step="50000"
+                                                value={initialBalance}
+                                                onChange={(e) => {
+                                                    const val = Math.max(0, Number(e.target.value));
+                                                    setInitialBalance(val);
+                                                    setLiveBrokerBalance(null);
+                                                }}
+                                                className="w-full bg-zinc-950 border border-zinc-700 focus:border-white rounded-lg pl-8 pr-2 py-1.5 text-xs font-mono font-bold text-white outline-none"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] text-zinc-400 block mb-1">Payout Profit Broker (%):</label>
+                                        <div className="relative flex items-center">
+                                            <input
+                                                type="number"
+                                                min="50"
+                                                max="98"
+                                                value={payoutRate}
+                                                onChange={(e) => setPayoutRate(Math.min(98, Math.max(50, Number(e.target.value))))}
+                                                className="w-full bg-zinc-950 border border-zinc-700 focus:border-white rounded-lg px-3 py-1.5 text-xs font-mono font-bold text-emerald-400 outline-none"
+                                            />
+                                            <span className="absolute right-3 text-xs font-mono text-zinc-400">%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Selector Metode Trading */}
+                            <div className="space-y-2">
+                                <label className="text-xs font-semibold text-zinc-300 flex items-center">
+                                    <span>Pilih Metode Algoritma Trading</span>
+                                    <InfoTooltip text="Pilih salah satu dari 3 strategi utama. Deskripsi cara kerja masing-masing metode akan tampil otomatis di bawah." />
+                                </label>
+                                <div className="relative">
+                                    <select
+                                        value={selectedMethod}
+                                        onChange={(e) => {
+                                            setSelectedMethod(e.target.value);
+                                            setCurrentStep(0);
+                                        }}
+                                        className="w-full bg-zinc-900/90 border border-amber-500/30 hover:border-amber-400 focus:border-amber-400 rounded-xl px-3.5 py-3 text-sm font-semibold text-white outline-none transition-colors cursor-pointer"
+                                    >
+                                        <option value="anti_sideway">Metode 1: Anti-Sideway (Ping-Pong)</option>
+                                        <option value="follow_trend">Metode 2: Trend Panjang (Follow Trend)</option>
+                                        <option value="reversal_5">Metode 3: Reversal 5 Candle (Otomatis Balik Arah)</option>
+                                    </select>
+                                </div>
+
+                                {/* Kotak Deskripsi Metode Aktif */}
+                                <div className="p-3.5 rounded-xl bg-gradient-to-br from-amber-950/30 via-zinc-900/90 to-zinc-950 border border-amber-500/30 space-y-1.5">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+                                            <Icon name="sparkles" size={14} />
+                                            {STRATEGIES[selectedMethod].shortName}
+                                        </span>
+                                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-200 border border-amber-500/30">
+                                            {STRATEGIES[selectedMethod].badge}
+                                        </span>
+                                    </div>
+                                    <p className="text-xs text-zinc-300 leading-relaxed">
+                                        {STRATEGIES[selectedMethod].desc}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Pengaturan Nominal OP Awal */}
+                            <div className="space-y-2 pt-1 border-t border-white/5">
+                                <div className="flex items-center justify-between">
+                                    <label className="text-xs font-semibold text-zinc-300 flex items-center">
+                                        <span>Modal / Nominal OP Awal (IDR)</span>
+                                        <InfoTooltip text="Nominal uang yang dipertaruhkan pada transaksi pertama (Step 0). Di Stockity/Binomo minimal Rp 14.000." />
+                                    </label>
+                                    <span className="text-[11px] font-mono text-zinc-400">Default: Rp 14.000</span>
+                                </div>
+                                <div className="relative flex items-center">
+                                    <span className="absolute left-3.5 text-xs font-mono font-bold text-zinc-400">Rp</span>
+                                    <input
+                                        type="number"
+                                        min="1000"
+                                        step="1000"
+                                        value={baseAmount}
+                                        onChange={(e) => setBaseAmount(Math.max(1000, Number(e.target.value)))}
+                                        className="w-full bg-zinc-900/90 border border-zinc-700 focus:border-white rounded-xl pl-10 pr-4 py-2.5 text-sm font-mono font-bold text-white outline-none transition-colors"
+                                    />
+                                </div>
+                                {/* Tombol Preset Nominal Cepat */}
+                                <div className="grid grid-cols-4 gap-2 pt-1">
+                                    {[14000, 28000, 50000, 100000].map((amt) => (
+                                        <button
+                                            key={amt}
+                                            type="button"
+                                            onClick={() => setBaseAmount(amt)}
+                                            className={`py-1.5 rounded-lg text-xs font-mono font-semibold border transition-all ${
+                                                Number(baseAmount) === amt
+                                                    ? 'glossy-white-accent border-white font-bold'
+                                                    : 'bg-zinc-900/80 border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-600'
+                                            }`}
+                                        >
+                                            {(amt / 1000)}rb
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Mode Martingale (Kompensasi Kekalahan) */}
+                            <div className="p-4 rounded-xl bg-zinc-900/70 border border-amber-500/20 space-y-3.5">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center">
+                                        <span className="text-xs font-bold text-amber-200">Mode Kompensasi Martingale</span>
+                                        <InfoTooltip text="Jika OP mengalami LOSS, bot otomatis melipatgandakan nominal OP berikutnya (misal x2.0) agar kerugian sebelumnya langsung tertutup dalam 1x WIN." />
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setMartingaleEnabled(!martingaleEnabled);
+                                            setCurrentStep(0);
+                                        }}
+                                        className={`w-12 h-6 rounded-full p-1 transition-colors flex items-center ${
+                                            martingaleEnabled ? 'bg-amber-500 justify-end' : 'bg-zinc-700 justify-start'
+                                        }`}
+                                    >
+                                        <span className="w-4 h-4 rounded-full bg-black shadow-md"></span>
+                                    </button>
+                                </div>
+
+                                {martingaleEnabled && (
+                                    <div className="space-y-3 pt-1 border-t border-white/10">
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div>
+                                                <label className="text-[11px] text-zinc-400 block mb-1">Pengali Lipatan (x)</label>
+                                                <input
+                                                    type="number"
+                                                    step="0.1"
+                                                    min="1.1"
+                                                    max="5.0"
+                                                    value={martingaleMultiplier}
+                                                    onChange={(e) => setMartingaleMultiplier(Number(e.target.value))}
+                                                    className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-1.5 text-xs font-mono font-bold text-white outline-none"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="text-[11px] text-zinc-400 block mb-1">Maksimal Step (Max {maxMartingaleStep}x)</label>
+                                                <select
+                                                    value={maxMartingaleStep}
+                                                    onChange={(e) => setMaxMartingaleStep(Number(e.target.value))}
+                                                    className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-2.5 py-1.5 text-xs font-mono font-bold text-white outline-none"
+                                                >
+                                                    <option value={1}>Max 1x Kompensasi</option>
+                                                    <option value={2}>Max 2x Kompensasi</option>
+                                                    <option value={3}>Max 3x Kompensasi</option>
+                                                    <option value={4}>Max 4x Kompensasi</option>
+                                                    <option value={5}>Max 5x Kompensasi</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        {/* Simulasi Urutan Step Martingale */}
+                                        <div className="space-y-1">
+                                            <span className="text-[10px] uppercase tracking-wider text-zinc-400 block">Preview Tahapan Nominal OP:</span>
+                                            <div className="flex flex-wrap gap-1.5">
+                                                {Array.from({ length: maxMartingaleStep + 1 }).map((_, idx) => {
+                                                    const stepVal = Math.round(baseAmount * Math.pow(martingaleMultiplier, idx));
+                                                    const isCurrent = currentStep === idx;
+                                                    return (
+                                                        <div
+                                                            key={idx}
+                                                            className={`px-2 py-1 rounded-md text-[11px] font-mono border ${
+                                                                isCurrent
+                                                                    ? 'glossy-white-accent font-extrabold'
+                                                                    : 'bg-zinc-950/80 border-zinc-800 text-zinc-400'
+                                                            }`}
+                                                        >
+                                                            {idx === 0 ? 'Awal: ' : `K${idx}: `}
+                                                            {formatIDR(stepVal)}
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Target Profit Harian (Take Profit) & Batas Risiko (Stop Loss) */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                                <div className="p-3 rounded-xl bg-emerald-950/20 border border-emerald-500/20 space-y-1.5">
+                                    <label className="text-xs font-semibold text-emerald-400 flex items-center">
+                                        <span>Target Profit (TP)</span>
+                                        <InfoTooltip text="Bot otomatis berhenti (PAUSED) ketika total keuntungan bersih hari ini mencapai angka Take Profit ini." />
+                                    </label>
+                                    <div className="relative flex items-center">
+                                        <span className="absolute left-2.5 text-xs font-mono text-emerald-500">Rp</span>
+                                        <input
+                                            type="number"
+                                            step="10000"
+                                            value={takeProfit}
+                                            onChange={(e) => setTakeProfit(Math.max(0, Number(e.target.value)))}
+                                            className="w-full bg-zinc-950/90 border border-emerald-500/30 rounded-lg pl-8 pr-2 py-1.5 text-xs font-mono font-bold text-white outline-none"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="p-3 rounded-xl bg-red-950/20 border border-red-500/20 space-y-1.5">
+                                    <label className="text-xs font-semibold text-red-400 flex items-center">
+                                        <span>Stop Loss (SL)</span>
+                                        <InfoTooltip text="Batas aman kerugian harian. Jika saldo minus menyentuh angka ini, bot langsung berhenti agar modal utama Anda tetap aman." />
+                                    </label>
+                                    <div className="relative flex items-center">
+                                        <span className="absolute left-2.5 text-xs font-mono text-red-500">Rp</span>
+                                        <input
+                                            type="number"
+                                            step="10000"
+                                            value={stopLoss}
+                                            onChange={(e) => setStopLoss(Math.max(0, Number(e.target.value)))}
+                                            className="w-full bg-zinc-950/90 border border-red-500/30 rounded-lg pl-8 pr-2 py-1.5 text-xs font-mono font-bold text-white outline-none"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        {/* =================================================================
+                            3. PANEL TENGAH: MONITORING CHART, TIMING & SIMULATOR (4 KOLOM)
+                        ================================================================= */}
+                        <section className="lg:col-span-4 bg-glossy-dark border-glossy rounded-2xl p-5 flex flex-col gap-5">
+                            {/* Header Panel Tengah */}
+                            <div className="flex items-center justify-between border-b border-amber-500/20 pb-3.5">
+                                <div className="flex items-center gap-2.5">
+                                    <span className="w-8 h-8 rounded-xl matte-crimson flex items-center justify-center font-bold">
+                                        <Icon name="activity" size={16} />
+                                    </span>
+                                    <div>
+                                        <h2 className="text-sm font-bold uppercase tracking-wider text-gold-glossy">2. Zero-Delay Shot & Simulator</h2>
+                                        <p className="text-[11px] text-zinc-400">Eksekusi OP awal menit 00:00.000 tanpa delay</p>
+                                    </div>
+                                </div>
+                                <span className="text-[11px] font-mono px-2.5 py-1 rounded-lg bg-amber-500/15 border border-amber-500/40 text-amber-300 font-bold">
+                                    Shots: {shotCount}x
+                                </span>
+                            </div>
+
+                            {/* Live Countdown Timer Presisi Milidetik & Zero-Delay Auto-Shot */}
+                            <div className="p-4 rounded-2xl bg-gradient-to-b from-zinc-900 to-zinc-950 border border-amber-500/25 relative overflow-hidden space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <div className="flex items-center">
+                                            <span className="text-xs font-semibold text-amber-200/80 uppercase tracking-wider">Timer Pergantian Candle</span>
+                                            <InfoTooltip text="Menggunakan High-Resolution Timer (milidetik) agar Bot menembakkan klik OP tepat di awal pergantian candle baru (00:00.000) tanpa terlambat 1 detik pun." />
+                                        </div>
+                                        <div className="flex items-baseline gap-1.5 mt-1">
+                                            <span className={`font-mono text-3xl sm:text-4xl font-extrabold tracking-tight ${
+                                                secondsLeft <= 3 ? 'text-amber-400 animate-pulse-fast' : 'text-gold-glossy'
+                                            }`}>
+                                                00:{String(secondsLeft).padStart(2, '0')}
+                                            </span>
+                                            <span className="font-mono text-sm font-bold text-amber-400">
+                                                .{String(msLeft % 1000).padStart(3, '0')}
+                                            </span>
+                                            <span className="text-[11px] text-zinc-400 ml-1">ms</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="text-right">
+                                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold ${
+                                            secondsLeft <= 3
+                                                ? 'glossy-white-accent'
+                                                : 'bg-zinc-900 text-amber-300 border border-amber-500/30'
+                                        }`}>
+                                            <Icon name="zap" size={13} />
+                                            {secondsLeft <= 3 ? 'LOCKING SHOT 00.000!' : 'ZERO-DELAY ARMED'}
+                                        </span>
+                                        <div className="mt-2 flex items-center justify-end gap-2">
+                                            <label className="text-[11px] text-zinc-300 cursor-pointer select-none flex items-center gap-1.5">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={autoSimOnZero}
+                                                    onChange={(e) => setAutoSimOnZero(e.target.checked)}
+                                                    className="accent-amber-500 rounded cursor-pointer"
+                                                />
+                                                <span>Auto-Simulasi Detik 00</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Progress Bar Detik Gold Glossy */}
+                                <div className="w-full h-2 bg-zinc-900 rounded-full overflow-hidden border border-amber-500/20">
+                                    <div
+                                        className="h-full transition-all duration-150 bg-gradient-to-r from-amber-600 via-yellow-400 to-amber-200"
+                                        style={{ width: `${((60 - secondsLeft) / 60) * 100}%` }}
+                                    ></div>
+                                </div>
+
+                                {/* Panel Kontrol Kecepatan Shot / Pre-Trigger Milidetik */}
+                                <div className="pt-2 border-t border-white/10 flex flex-wrap items-center justify-between gap-2 text-xs">
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => setZeroDelayShot(!zeroDelayShot)}
+                                            className={`px-2.5 py-1 rounded-lg font-bold text-[11px] flex items-center gap-1.5 border transition-all ${
+                                                zeroDelayShot
+                                                    ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                                                    : 'bg-zinc-900 text-zinc-400 border-zinc-700'
+                                            }`}
+                                        >
+                                            <Icon name="crosshair" size={13} />
+                                            <span>Auto-Shot Awal Menit: {zeroDelayShot ? 'ON' : 'OFF'}</span>
+                                        </button>
+                                        <InfoTooltip text="Kompensasi Ping/Jaringan: Menembakkan sinyal beberapa milidetik sebelum detik 00.000 agar order diterima server Stockity/Binomo tepat di titik pembukaan candle baru tanpa delay." />
+                                    </div>
+
+                                    <div className="flex items-center gap-1.5">
+                                        <span className="text-[11px] text-zinc-400">Kompensasi Ping:</span>
+                                        <select
+                                            value={preShotLeadMs}
+                                            onChange={(e) => setPreShotLeadMs(Number(e.target.value))}
+                                            className="bg-zinc-900 border border-zinc-700 rounded-lg px-2 py-1 text-[11px] font-mono font-bold text-white outline-none"
+                                        >
+                                            <option value={50}>0ms (Tepat 00.000s)</option>
+                                            <option value={150}>-150ms (Cepat / Fiber)</option>
+                                            <option value={300}>-300ms (Anti-Delay 4G)</option>
+                                            <option value={500}>-500ms (Ultra Pre-Shot)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* STATUS INDIKATOR: PREDIKSI SINYAL BERIKUTNYA */}
+                            <div className={`p-4 rounded-2xl border transition-all ${
+                                nextSignalData.signal === 'UP'
+                                    ? 'bg-gradient-to-br from-emerald-950/60 via-zinc-900 to-zinc-950 border-emerald-500/40 shadow-[0_0_25px_rgba(16,185,129,0.12)]'
+                                    : nextSignalData.signal === 'DOWN'
+                                    ? 'bg-gradient-to-br from-red-950/60 via-zinc-900 to-zinc-950 border-red-500/40 shadow-[0_0_25px_rgba(239,68,68,0.12)]'
+                                    : 'bg-zinc-900/90 border-amber-500/30'
+                            }`}>
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className="text-xs font-bold uppercase tracking-wider text-zinc-300 flex items-center">
+                                        <Icon name="radar" size={15} className="mr-1.5 text-red-400" />
+                                        Prediksi Sinyal Berikutnya
+                                        <InfoTooltip text="Keputusan yang akan diambil oleh Bot pada penutupan candle saat ini berdasarkan metode yang Anda pilih di Panel Kiri." />
+                                    </span>
+                                    <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-md bg-black/40 border border-white/10 text-white">
+                                        OP: {formatIDR(currentTradeAmount)} {currentStep > 0 ? `(Step ${currentStep})` : ''}
+                                    </span>
+                                </div>
+
+                                <div className="flex items-center justify-between gap-3 my-2">
+                                    <div className="flex items-center gap-3">
+                                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-extrabold shadow-lg ${
+                                            nextSignalData.signal === 'UP'
+                                                ? 'bg-emerald-500 text-zinc-950'
+                                                : nextSignalData.signal === 'DOWN'
+                                                ? 'bg-red-600 text-white'
+                                                : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                                        }`}>
+                                            <Icon
+                                                name={nextSignalData.signal === 'UP' ? 'trending-up' : nextSignalData.signal === 'DOWN' ? 'trending-down' : 'hourglass'}
+                                                size={26}
+                                            />
+                                        </div>
+                                        <div>
+                                            <div className="text-[11px] text-zinc-400 uppercase">Sinyal Berikutnya:</div>
+                                            <div className={`text-xl sm:text-2xl font-extrabold tracking-tight ${
+                                                nextSignalData.signal === 'UP' ? 'text-emerald-400' :
+                                                nextSignalData.signal === 'DOWN' ? 'text-red-400' : 'text-amber-300'
+                                            }`}>
+                                                {nextSignalData.label}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <p className="text-xs text-zinc-300 bg-black/30 rounded-xl p-2.5 border border-white/5 leading-relaxed">
+                                    {nextSignalData.reason}
+                                </p>
+                            </div>
+
+                            {/* Visualisasi Urutan Candle Terakhir */}
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between text-xs">
+                                    <span className="font-semibold text-zinc-300 flex items-center">
+                                        <span>Visualisasi History Candle Terakhir</span>
+                                        <InfoTooltip text="Menampilkan urutan warna candle yang terbentuk. Sangat membantu untuk memantau streak (candle beruntun) pada Metode 3." />
+                                    </span>
+                                    <span className="font-mono text-[11px] text-zinc-400">
+                                        Streak: <strong className={streakInfo.dir === 'UP' ? 'text-emerald-400' : 'text-red-400'}>{streakInfo.count}x {streakInfo.dir === 'UP' ? 'Hijau' : 'Merah'}</strong>
+                                    </span>
+                                </div>
+
+                                <div className="p-3.5 rounded-xl bg-zinc-950 border border-white/10 flex items-center justify-between gap-1.5 overflow-x-auto">
+                                    {candleHistory.slice(-10).map((c, idx, arr) => {
+                                        const isLatest = idx === arr.length - 1;
+                                        return (
+                                            <div key={c.id} className="flex flex-col items-center gap-1 min-w-[26px]">
+                                                {/* Sumbu Atas */}
+                                                <div className={`w-0.5 h-2 ${c.dir === 'UP' ? 'bg-emerald-500/60' : 'bg-red-500/60'}`}></div>
+                                                {/* Body Candle */}
+                                                <div className={`w-5 h-9 rounded-sm flex items-center justify-center text-[9px] font-mono font-bold transition-all ${
+                                                    c.dir === 'UP'
+                                                        ? 'bg-emerald-500 text-zinc-950 shadow-[0_0_10px_rgba(16,185,129,0.3)]'
+                                                        : 'bg-red-600 text-white shadow-[0_0_10px_rgba(220,38,38,0.3)]'
+                                                } ${isLatest ? 'ring-2 ring-white scale-110' : 'opacity-85'}`}>
+                                                    {c.dir === 'UP' ? '▲' : '▼'}
+                                                </div>
+                                                {/* Sumbu Bawah */}
+                                                <div className={`w-0.5 h-2 ${c.dir === 'UP' ? 'bg-emerald-500/60' : 'bg-red-500/60'}`}></div>
+                                                <span className="text-[9px] font-mono text-zinc-500">{isLatest ? 'Baru' : idx + 1}</span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            {/* PANEL SIMULASI PERGERAKAN CHART (MANUAL TESTING) */}
+                            <div className="space-y-2.5 pt-1 border-t border-white/10">
+                                <div className="flex items-center justify-between">
+                                    <label className="text-xs font-bold text-white flex items-center">
+                                        <span>Simulasi Pergerakan Chart (Manual Testing)</span>
+                                        <InfoTooltip text="Klik tombol Hijau atau Merah di bawah untuk menyimulasikan penutupan candle di broker. Anda dapat menguji apakah logika Metode 1, 2, dan 3 beserta hitungan Martingale sudah sesuai sebelum dipakai trading sungguhan." />
+                                    </label>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => handleTriggerCandle('UP')}
+                                        className="group relative overflow-hidden p-3.5 rounded-xl bg-gradient-to-b from-emerald-500 to-emerald-700 hover:from-emerald-400 hover:to-emerald-600 text-zinc-950 font-extrabold text-xs tracking-wide shadow-lg shadow-emerald-950/50 active:scale-95 transition-all flex items-center justify-center gap-2"
+                                    >
+                                        <Icon name="arrow-up-circle" size={18} />
+                                        <span>Simulasi Candle NAIK (Hijau)</span>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => handleTriggerCandle('DOWN')}
+                                        className="group relative overflow-hidden p-3.5 rounded-xl bg-gradient-to-b from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 text-white font-extrabold text-xs tracking-wide shadow-lg shadow-red-950/50 border border-red-400/30 active:scale-95 transition-all flex items-center justify-center gap-2"
+                                    >
+                                        <Icon name="arrow-down-circle" size={18} />
+                                        <span>Simulasi Candle TURUN (Merah)</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </section>
+
+                        {/* =================================================================
+                            4. PANEL KANAN: EKSEKUSI & SCRIPT GENERATOR (4 KOLOM)
+                        ================================================================= */}
+                        <section className="lg:col-span-4 bg-glossy-dark border-glossy rounded-2xl p-5 flex flex-col gap-4">
+                            {/* Header Panel Kanan */}
+                            <div className="flex items-center justify-between border-b border-amber-500/20 pb-3.5">
+                                <div className="flex items-center gap-2.5">
+                                    <span className="w-8 h-8 rounded-xl matte-crimson flex items-center justify-center font-bold">
+                                        <Icon name="terminal" size={16} />
+                                    </span>
+                                    <div>
+                                        <h2 className="text-sm font-bold uppercase tracking-wider text-gold-glossy">3. Bridge & Deploy Vercel</h2>
+                                        <p className="text-[11px] text-zinc-400">DOM Injector (F12) & Panduan Hosting</p>
+                                    </div>
+                                </div>
+
+                                {/* Pilihan Broker */}
+                                <div className="flex bg-zinc-950 p-1 rounded-xl border border-amber-500/30">
+                                    <button
+                                        type="button"
+                                        onClick={() => handleBrokerPresetChange('stockity')}
+                                        className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                                            brokerPreset === 'stockity' ? 'glossy-white-accent' : 'text-zinc-400 hover:text-white'
+                                        }`}
+                                    >
+                                        Stockity
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleBrokerPresetChange('binomo')}
+                                        className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                                            brokerPreset === 'binomo' ? 'glossy-white-accent' : 'text-zinc-400 hover:text-white'
+                                        }`}
+                                    >
+                                        Binomo
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Navigasi Sub-Tab Panel Kanan (Ditambah Tab Deploy Vercel) */}
+                            <div className="grid grid-cols-4 gap-1 bg-zinc-950/90 p-1.5 rounded-xl border border-amber-500/20">
+                                <button
+                                    type="button"
+                                    onClick={() => setActiveRightTab('script')}
+                                    className={`py-2 px-1.5 rounded-lg text-[11px] font-bold flex items-center justify-center gap-1 transition-all ${
+                                        activeRightTab === 'script'
+                                            ? 'glossy-white-accent shadow'
+                                            : 'text-zinc-400 hover:text-white'
+                                    }`}
+                                >
+                                    <Icon name="code-2" size={13} />
+                                    <span>Script</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setActiveRightTab('guide')}
+                                    className={`py-2 px-1.5 rounded-lg text-[11px] font-bold flex items-center justify-center gap-1 transition-all ${
+                                        activeRightTab === 'guide'
+                                            ? 'glossy-white-accent shadow'
+                                            : 'text-zinc-400 hover:text-white'
+                                    }`}
+                                >
+                                    <Icon name="book-open" size={13} />
+                                    <span>Panduan</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setActiveRightTab('config')}
+                                    className={`py-2 px-1.5 rounded-lg text-[11px] font-bold flex items-center justify-center gap-1 transition-all ${
+                                        activeRightTab === 'config'
+                                            ? 'glossy-white-accent shadow'
+                                            : 'text-zinc-400 hover:text-white'
+                                    }`}
+                                >
+                                    <Icon name="settings-2" size={13} />
+                                    <span>Selector</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setActiveRightTab('vercel')}
+                                    className={`py-2 px-1.5 rounded-lg text-[11px] font-bold flex items-center justify-center gap-1 transition-all ${
+                                        activeRightTab === 'vercel'
+                                            ? 'glossy-white-accent shadow'
+                                            : 'text-amber-300 hover:text-white'
+                                    }`}
+                                >
+                                    <Icon name="rocket" size={13} />
+                                    <span>Vercel</span>
+                                </button>
+                            </div>
+
+                            {/* Ringkasan Panduan Singkat (Selalu Tampil agar Tidak Bingung) */}
+                            <div className="p-3 rounded-xl bg-zinc-900/80 border border-amber-500/20 text-xs text-zinc-300 space-y-1">
+                                <div className="font-bold text-amber-300 flex items-center gap-1.5">
+                                    <Icon name="zap" size={14} className="text-amber-400" />
+                                    <span>3 Langkah Cepat Menghubungkan SCORPIONS KING:</span>
+                                </div>
+                                <ol className="list-decimal list-inside space-y-0.5 text-[11px] text-zinc-300 pl-1">
+                                    <li>Klik tombol <strong>One-Click Copy Script</strong> di bawah.</li>
+                                    <li>Buka tab <strong>{brokerPreset === 'stockity' ? 'Stockity' : 'Binomo'}</strong> di browser, tekan <strong>F12</strong> lalu pilih tab <strong>Console</strong>.</li>
+                                    <li><strong>Paste (Ctrl+V)</strong> kode tersebut lalu tekan <strong>Enter</strong>. Selesai!</li>
+                                </ol>
+                            </div>
+
+                            {/* KONTEN TAB 1: KOTAK KODE SCRIPT OTOMATIS */}
+                            {activeRightTab === 'script' && (
+                                <div className="space-y-3 flex-1 flex flex-col">
+                                    <div className="relative flex-1">
+                                        <pre className="w-full h-56 overflow-y-auto bg-zinc-950 border border-amber-500/30 rounded-xl p-3.5 text-[11px] font-mono text-amber-300 leading-relaxed select-all">
+                                            {generatedBridgeScript}
+                                        </pre>
+                                        <span className="absolute top-2.5 right-3 text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-900 text-amber-300 border border-amber-500/30">
+                                            SCORPIONS KING JS
+                                        </span>
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        onClick={handleCopyScript}
+                                        className={`w-full py-3 px-4 rounded-xl font-extrabold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all ${
+                                            copiedScript
+                                                ? 'bg-emerald-500 text-zinc-950 shadow-lg shadow-emerald-500/30'
+                                                : 'glossy-white-accent hover:brightness-110 active:scale-98'
+                                        }`}
+                                    >
+                                        <Icon name={copiedScript ? 'check' : 'copy'} size={16} />
+                                        <span>{copiedScript ? 'BERHASIL DISALIN KE CLIPBOARD!' : 'ONE-CLICK COPY SCRIPT OTOMATIS'}</span>
+                                    </button>
+                                </div>
+                            )}
+
+                            {/* KONTEN TAB 2: PANDUAN LENGKAP STEP-BY-STEP DI ATAS STOCKITY / BINOMO */}
+                            {activeRightTab === 'guide' && (
+                                <div className="space-y-3 bg-zinc-950/95 border border-amber-500/30 rounded-xl p-4 text-xs text-zinc-300 leading-relaxed max-h-80 overflow-y-auto">
+                                    <h3 className="font-extrabold text-amber-300 text-sm flex items-center gap-2">
+                                        <Icon name="layers" size={16} className="text-amber-400" />
+                                        Panduan Step-by-Step Muncul di Atas Layar Stockity / Binomo
+                                    </h3>
+                                    <p className="text-[11px] text-zinc-300">
+                                        Script <strong>SCORPIONS KING</strong> sudah dilengkapi fitur <strong>Floating HUD Overlay</strong> (kotak panel melayang Hitam-Gold yang tampil langsung di atas grafik candlestick Stockity/Binomo Anda):
+                                    </p>
+                                    <div className="space-y-2 pt-1 text-[11px]">
+                                        <div className="p-2.5 rounded-lg bg-zinc-900 border border-amber-500/20">
+                                            <strong className="text-amber-300 block">Langkah 1: Atur Strategi & Salin Script</strong>
+                                            Pilih broker (<strong>Stockity</strong> atau <strong>Binomo</strong>) dan strategi di Panel Kiri, lalu buka tab <strong>Script</strong> dan klik tombol emas <strong>ONE-CLICK COPY SCRIPT OTOMATIS</strong>.
+                                        </div>
+                                        <div className="p-2.5 rounded-lg bg-zinc-900 border border-amber-500/20">
+                                            <strong className="text-amber-300 block">Langkah 2: Buka Halaman Trading Stockity / Binomo</strong>
+                                            Login ke akun Stockity atau Binomo Anda di Google Chrome / Edge, pilih aset (misal <em>Crypto IDX</em>) dan pastikan durasi waktu chart disetel ke <strong>1 Menit (1m)</strong>.
+                                        </div>
+                                        <div className="p-2.5 rounded-lg bg-zinc-900 border border-amber-500/20">
+                                            <strong className="text-amber-300 block">Langkah 3: Buka Console Browser (F12)</strong>
+                                            Tekan tombol <strong>F12</strong> (atau klik kanan di layar &rarr; pilih <strong>Inspect / Inspeksi</strong>), lalu klik menu tab <strong>Console</strong> di bagian atas panel yang terbuka.
+                                        </div>
+                                        <div className="p-2.5 rounded-lg bg-zinc-900 border border-amber-500/20">
+                                            <strong className="text-amber-300 block">Langkah 4: Paste Script & Tekan Enter</strong>
+                                            <em>Catatan Penting:</em> Jika baru pertama kali membuka Console Chrome dan muncul peringatan <em>"Paste protection"</em>, ketik <code className="text-amber-300 font-mono">allow pasting</code> lalu tekan <strong>Enter</strong>. Setelah itu tekan <strong>Ctrl + V (Paste)</strong> dan tekan <strong>Enter</strong>.
+                                        </div>
+                                        <div className="p-2.5 rounded-lg bg-zinc-900 border border-emerald-500/30">
+                                            <strong className="text-emerald-400 block">Langkah 5: Panel Melayang SCORPIONS KING Muncul di Atas Chart!</strong>
+                                            Tepat di pojok kanan atas grafik Stockity/Binomo Anda akan muncul kotak <strong>🦂 SCORPIONS KING Floating HUD</strong> yang bisa digeser-geser. Klik tombol <strong>▶ AKTIFKAN AUTO-SHOT AWAL MENIT (00:00)</strong> pada panel melayang tersebut atau jalankan dari dashboard ini!
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* KONTEN TAB 3: CUSTOM CSS SELECTOR INPUT */}
+                            {activeRightTab === 'config' && (
+                                <div className="space-y-3 bg-zinc-950/90 border border-zinc-800 rounded-xl p-4">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-xs font-bold text-white flex items-center">
+                                            <span>Custom CSS Selector Broker</span>
+                                            <InfoTooltip text="Jika suatu saat Stockity atau Binomo memperbarui tampilan websitenya dan mengubah nama class tombol, Anda cukup mengganti selector di bawah ini." />
+                                        </span>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <div>
+                                            <label className="text-[11px] text-emerald-400 font-semibold block mb-1">
+                                                Selector Tombol NAIK (CALL / HIJAU):
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={callSelector}
+                                                onChange={(e) => setCallSelector(e.target.value)}
+                                                className="w-full bg-zinc-900 border border-zinc-700 focus:border-emerald-500 rounded-lg px-3 py-2 text-xs font-mono text-white outline-none"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="text-[11px] text-red-400 font-semibold block mb-1">
+                                                Selector Tombol TURUN (PUT / MERAH):
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={putSelector}
+                                                onChange={(e) => setPutSelector(e.target.value)}
+                                                className="w-full bg-zinc-900 border border-zinc-700 focus:border-red-500 rounded-lg px-3 py-2 text-xs font-mono text-white outline-none"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="text-[11px] text-zinc-400 font-semibold block mb-1">
+                                                Selector Input Nominal (Amount):
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={amountSelector}
+                                                onChange={(e) => setAmountSelector(e.target.value)}
+                                                className="w-full bg-zinc-900 border border-zinc-700 focus:border-white rounded-lg px-3 py-2 text-xs font-mono text-white outline-none"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="text-[11px] text-amber-400 font-semibold block mb-1">
+                                                Selector Pembaca Saldo Akun (DOM Balance Reader):
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={balanceSelector}
+                                                onChange={(e) => setBalanceSelector(e.target.value)}
+                                                className="w-full bg-zinc-900 border border-zinc-700 focus:border-amber-400 rounded-lg px-3 py-2 text-xs font-mono text-white outline-none"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* KONTEN TAB 4: PANDUAN DEPLOY KE VERCEL */}
+                            {activeRightTab === 'vercel' && (
+                                <div className="space-y-3 bg-zinc-950/95 border border-amber-500/40 rounded-xl p-4 text-xs text-zinc-300 leading-relaxed">
+                                    <div className="flex items-center justify-between">
+                                        <h3 className="font-extrabold text-amber-300 text-sm flex items-center gap-2">
+                                            <Icon name="rocket" size={16} className="text-amber-400" />
+                                            Deploy SCORPIONS KING ke Vercel
+                                        </h3>
+                                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                                            Production Ready
+                                        </span>
+                                    </div>
+                                    <p className="text-[11px] text-zinc-300">
+                                        Unduh kedua file di bawah ini ke dalam 1 folder di komputer/HP Anda, lalu unggah ke <strong>Vercel</strong>:
+                                    </p>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={handleDownloadVercelBundle}
+                                            className="py-2.5 px-3 rounded-xl glossy-white-accent font-extrabold text-[11px] uppercase tracking-wider flex items-center justify-center gap-1.5 hover:brightness-110 transition-all"
+                                        >
+                                            <Icon name="download" size={14} />
+                                            <span>1. Unduh index.html</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={handleDownloadVercelConfig}
+                                            className="py-2.5 px-3 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-amber-300 border border-amber-500/40 font-extrabold text-[11px] uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all"
+                                        >
+                                            <Icon name="file-json" size={14} />
+                                            <span>2. Unduh vercel.json</span>
+                                        </button>
+                                    </div>
+                                    <div className="space-y-2 text-[11px]">
+                                        <div className="p-2.5 rounded-lg bg-zinc-900 border border-amber-500/25">
+                                            <strong className="text-amber-300 block mb-0.5">Cara 1: Tanpa Coding via GitHub + Vercel (Paling Mudah)</strong>
+                                            1. Klik tombol <strong>1. Unduh index.html</strong> dan <strong>2. Unduh vercel.json</strong> di atas.<br/>
+                                            2. Buka <strong>github.com/new</strong>, buat repository bernama <code className="text-amber-200 font-mono">scorpions-king</code> lalu upload kedua file tersebut.<br/>
+                                            3. Login ke <strong>vercel.com</strong> &rarr; klik <strong>Add New Project</strong> &rarr; <strong>Import</strong> repository <code className="text-amber-200 font-mono">scorpions-king</code> &rarr; klik <strong>Deploy</strong>.
+                                        </div>
+                                        <div className="p-2.5 rounded-lg bg-zinc-900 border border-amber-500/25">
+                                            <strong className="text-amber-300 block mb-0.5">Cara 2: Deploy Instan via Terminal (Vercel CLI)</strong>
+                                            Simpan <code className="text-amber-200 font-mono">index.html</code> dan <code className="text-amber-200 font-mono">vercel.json</code> di satu folder, lalu jalankan perintah ini di Terminal:
+                                            <pre className="mt-1.5 p-2 rounded bg-black text-amber-300 font-mono text-[10px] select-all border border-amber-500/30">npx vercel --prod</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </section>
+                    </main>
+
+                    {/* =====================================================================
+                        5. BAGIAN BAWAH (FOOTER DASHBOARD): REKAP NILAI PROFIT/LOSS SESI & TABEL LOG
+                    ===================================================================== */}
+                    <footer className="relative z-10 max-w-[1600px] w-full mx-auto px-4 sm:px-6 mt-6">
+                        <div className="bg-glossy-dark border-glossy rounded-2xl p-5 space-y-5">
+                            
+                            {/* Baris Atas Footer: Judul & Tombol Aksi */}
+                            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-amber-500/20 pb-4">
+                                <div className="flex items-center gap-3">
+                                    <span className="w-9 h-9 rounded-xl matte-crimson flex items-center justify-center font-bold">
+                                        <Icon name="bar-chart-3" size={18} />
+                                    </span>
+                                    <div>
+                                        <h2 className="text-sm sm:text-base font-bold uppercase tracking-wider text-gold-glossy flex items-center">
+                                            <span>Ringkasan Sesi Trading SCORPIONS KING & Riwayat Real-Time</span>
+                                            <InfoTooltip text="Menampilkan total nilai uang yang dimenangkan (Nilai Profit), total nilai kekalahan (Nilai Loss), serta selisih bersih pada sesi trading saat ini." />
+                                        </h2>
+                                        <p className="text-xs text-zinc-400">
+                                            Total Eksekusi: <strong className="text-white">{stats.total} OP</strong> • Win Rate: <strong className="text-emerald-400">{stats.winRate}%</strong> ({stats.wins} WIN / {stats.losses} LOSS) • Perputaran Modal: <strong className="text-zinc-200 font-mono">{formatIDR(stats.totalTurnover)}</strong>
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Tombol Reset Log & Export Laporan */}
+                                <div className="flex items-center gap-2.5">
+                                    <button
+                                        type="button"
+                                        onClick={handleResetLogs}
+                                        className="px-4 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-700 text-xs font-bold flex items-center gap-1.5 transition-all"
+                                    >
+                                        <Icon name="rotate-ccw" size={14} />
+                                        <span>Reset Sesi & Log</span>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={handleExportCSV}
+                                        className="px-4 py-2 rounded-xl glossy-white-accent hover:opacity-90 text-xs font-extrabold flex items-center gap-1.5 transition-all"
+                                    >
+                                        <Icon name="download" size={14} />
+                                        <span>Export Laporan (CSV)</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* KARTU REKAPITULASI NILAI PROFIT & NILAI LOSS PADA SESI TRADING SAAT INI */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+                                {/* Kartu 1: Saldo Akun Saat Ini */}
+                                <div className="p-4 rounded-xl bg-zinc-900/90 border border-white/10 flex items-center justify-between">
+                                    <div>
+                                        <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400 block">
+                                            Saldo Akun ({brokerPreset.toUpperCase()} {accountType})
+                                        </span>
+                                        <span className="font-mono text-lg sm:text-xl font-extrabold text-white mt-0.5 block">
+                                            {formatIDR(stats.currentActiveBalance)}
+                                        </span>
+                                        <span className="text-[11px] text-zinc-400">
+                                            Modal Awal: {formatIDR(initialBalance)}
+                                        </span>
+                                    </div>
+                                    <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white">
+                                        <Icon name="wallet" size={20} />
+                                    </div>
+                                </div>
+
+                                {/* Kartu 2: Nilai Profit Sesi Ini (Gross Profit) */}
+                                <div className="p-4 rounded-xl bg-emerald-950/25 border border-emerald-500/30 flex items-center justify-between">
+                                    <div>
+                                        <span className="text-[11px] font-semibold uppercase tracking-wider text-emerald-300 block">
+                                            Nilai Profit Sesi Ini ({stats.wins}x WIN)
+                                        </span>
+                                        <span className="font-mono text-lg sm:text-xl font-extrabold text-emerald-400 mt-0.5 block">
+                                            +{formatIDR(stats.grossProfitValue)}
+                                        </span>
+                                        <span className="text-[11px] text-emerald-300/70">
+                                            Akumulasi kemenangan kotor
+                                        </span>
+                                    </div>
+                                    <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                                        <Icon name="trending-up" size={20} />
+                                    </div>
+                                </div>
+
+                                {/* Kartu 3: Nilai Loss Sesi Ini (Gross Loss) */}
+                                <div className="p-4 rounded-xl bg-red-950/25 border border-red-500/30 flex items-center justify-between">
+                                    <div>
+                                        <span className="text-[11px] font-semibold uppercase tracking-wider text-red-300 block">
+                                            Nilai Loss Sesi Ini ({stats.losses}x LOSS)
+                                        </span>
+                                        <span className="font-mono text-lg sm:text-xl font-extrabold text-red-400 mt-0.5 block">
+                                            -{formatIDR(stats.grossLossValue)}
+                                        </span>
+                                        <span className="text-[11px] text-red-300/70">
+                                            Akumulasi kekalahan kotor
+                                        </span>
+                                    </div>
+                                    <div className="w-10 h-10 rounded-xl bg-red-500/20 border border-red-500/30 flex items-center justify-center text-red-400">
+                                        <Icon name="trending-down" size={20} />
+                                    </div>
+                                </div>
+
+                                {/* Kartu 4: Hasil Bersih (Net Profit / Loss Sesi) */}
+                                <div className={`p-4 rounded-xl border flex items-center justify-between ${
+                                    stats.netSessionProfit >= 0
+                                        ? 'bg-gradient-to-br from-emerald-950/40 to-zinc-900 border-emerald-500/40'
+                                        : 'bg-gradient-to-br from-red-950/40 to-zinc-900 border-red-500/40'
+                                }`}>
+                                    <div>
+                                        <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-200 block">
+                                            Net Profit / Loss Sesi Ini
+                                        </span>
+                                        <span className={`font-mono text-lg sm:text-xl font-extrabold mt-0.5 block ${
+                                            stats.netSessionProfit >= 0 ? 'text-emerald-400' : 'text-red-400'
+                                        }`}>
+                                            {stats.netSessionProfit >= 0 ? '+' : ''}{formatIDR(stats.netSessionProfit)}
+                                        </span>
+                                        <span className="text-[11px] text-zinc-300">
+                                            Pertumbuhan Sesi: <strong>{stats.roiPercent >= 0 ? `+${stats.roiPercent}%` : `${stats.roiPercent}%`}</strong>
+                                        </span>
+                                    </div>
+                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold ${
+                                        stats.netSessionProfit >= 0 ? 'bg-emerald-500 text-zinc-950' : 'bg-red-600 text-white'
+                                    }`}>
+                                        <Icon name={stats.netSessionProfit >= 0 ? 'award' : 'alert-triangle'} size={20} />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Tabel Responsif */}
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr className="border-b border-white/10 text-[11px] font-bold uppercase tracking-wider text-zinc-400 bg-zinc-950/60">
+                                            <th className="py-3 px-4 rounded-tl-xl">Waktu & Speed Shot</th>
+                                            <th className="py-3 px-4">Metode Strategi</th>
+                                            <th className="py-3 px-4">Aksi (OP)</th>
+                                            <th className="py-3 px-4">Nilai Profit / Loss</th>
+                                            <th className="py-3 px-4">Nominal OP</th>
+                                            <th className="py-3 px-4 text-right rounded-tr-xl">Saldo Akhir & Net Sesi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-white/5 text-xs">
+                                        {tradeLogs.length === 0 ? (
+                                            <tr>
+                                                <td colSpan="6" className="py-10 text-center text-zinc-500">
+                                                    Belum ada aktivitas trading pada sesi ini. Klik tombol <strong>Simulasi Candle NAIK / TURUN</strong> atau aktifkan <strong>START BOT</strong>.
+                                                </td>
+                                            </tr>
+                                        ) : (
+                                            tradeLogs.map((log) => (
+                                                <tr key={log.id} className="hover:bg-white/[0.02] transition-colors">
+                                                    <td className="py-3 px-4 font-mono text-zinc-300 whitespace-nowrap">
+                                                        <div className="flex items-center gap-2">
+                                                            <span>{log.time}</span>
+                                                            <span className="px-1.5 py-0.5 text-[10px] rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                                                ⚡ {log.latencyMs || 5}ms
+                                                            </span>
+                                                        </div>
+                                                        <span className="text-[10px] text-zinc-500">{log.id}</span>
+                                                    </td>
+                                                    <td className="py-3 px-4 font-medium text-white whitespace-nowrap">
+                                                        {log.method}
+                                                        {log.step > 0 && (
+                                                            <span className="ml-2 px-1.5 py-0.5 text-[10px] font-mono rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                                                                Kompensasi K{log.step}
+                                                            </span>
+                                                        )}
+                                                    </td>
+                                                    <td className="py-3 px-4 whitespace-nowrap">
+                                                        <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg font-bold text-[11px] ${
+                                                            log.action === 'UP'
+                                                                ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                                                                : 'bg-red-500/15 text-red-400 border border-red-500/30'
+                                                        }`}>
+                                                            <Icon name={log.action === 'UP' ? 'arrow-up-right' : 'arrow-down-right'} size={13} />
+                                                            {log.action === 'UP' ? 'OP NAIK (CALL)' : 'OP TURUN (PUT)'}
+                                                        </span>
+                                                    </td>
+                                                    <td className="py-3 px-4 whitespace-nowrap font-mono">
+                                                        <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg font-extrabold text-[11px] ${
+                                                            log.status === 'WIN'
+                                                                ? 'bg-emerald-500 text-zinc-950'
+                                                                : 'bg-red-600 text-white'
+                                                        }`}>
+                                                            {log.status}: {log.profitChange >= 0 ? `+${formatIDR(log.profitChange)}` : formatIDR(log.profitChange)}
+                                                        </span>
+                                                    </td>
+                                                    <td className="py-3 px-4 font-mono font-semibold text-zinc-200 whitespace-nowrap">
+                                                        {formatIDR(log.amount)}
+                                                    </td>
+                                                    <td className="py-3 px-4 font-mono font-bold text-right whitespace-nowrap">
+                                                        <span className="text-white block">
+                                                            {formatIDR(log.balanceAfter || (initialBalance + log.totalProfit))}
+                                                        </span>
+                                                        <span className={`text-[10px] font-semibold ${log.totalProfit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                                            Net Sesi: {log.totalProfit >= 0 ? '+' : ''}{formatIDR(log.totalProfit)}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </footer>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
