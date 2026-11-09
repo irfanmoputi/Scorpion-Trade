@@ -1043,10 +1043,9 @@
         }
     }
 
-    // Bypass Background Tab Throttling (Agar tidak delay meski minimize tab)
-    const workerBlob = new Blob(["setInterval(() => self.postMessage('tick'), 10);"], { type: 'application/javascript' });
-    const worker = new Worker(URL.createObjectURL(workerBlob));
-    worker.onmessage = () => tickSniperEngine();
+    // Perbaikan: Gunakan setInterval biasa karena Web Worker diblokir oleh keamanan (CSP) Stockity.
+    // Catatan: Usahakan tab Stockity tidak di-minimize saat bot berjalan agar timer tetap presisi.
+    setInterval(() => tickSniperEngine(), 15);
 
     // Sinkronisasi DOM saldo setiap 2 detik
     readAndSyncBrokerBalance(true);
