@@ -820,72 +820,80 @@
     let preTriggerMs = ${preShotLeadMs};
     let shotTotal = 0;
 
+    let brokerTimeOffsetMs = 0; // Kompensasi jika jam PC selisih dengan jam Broker
+    let lastBrokerSecText = "";
+
     console.log("%c[🦂 SCORPIONS KING] Ultra-Strict Sniper Aktif di " + CONFIG.broker + "!", "color:#FACC15; background:#050507; padding:6px 12px; border:1px solid #EAB308; border-radius:6px; font-weight:bold; font-size:13px;");
 
     // 1. Fungsi Pembaca Nominal Isi Akun (Saldo Real/Demo) Otomatis dari DOM Broker
     function readAndSyncBrokerBalance(isInitial = false) {
-        let balEls = Array.from(document.querySelectorAll(CONFIG.balanceSelector));
-        let balEl = balEls.find(el => el.offsetParent !== null && (el.innerText || '').includes('Rp'));
-
-        if (!balEl) {
-            // Smart Fallback: Cari elemen yang mengandung "Rp" khusus di bagian ATAS layar (Header)
-            const allSpans = Array.from(document.querySelectorAll('span, div, p, strong, b'));
-            balEl = allSpans.find(el => {
-                const txt = (el.innerText || '').trim();
+        const allElements = document.querySelectorAll('*');
+        for (let i = 0; i < allElements.length; i++) {
+            const el = allElements[i];
+            if (el.children.length === 0) { // Leaf node (teks murni)
+                const txt = (el.textContent || '').trim();
                 const rect = el.getBoundingClientRect();
-                // Pastikan elemen ada di area atas (top < 150) agar tidak tertukar dengan input amount di bawah
-                return rect.top >= 0 && rect.top < 150 && rect.width > 0 && /^Rp\\s?[0-9.,]+/.test(txt) && el.children.length === 0;
-            });
-        }
-        if (!balEl) return null;
-        const rawText = balEl.innerText || balEl.textContent || "";
-        const numericVal = parseInt(rawText.replace(/[^0-9]/g, ""), 10);
-        if (!isNaN(numericVal) && numericVal > 0) {
-            const payload = {
-                source: 'BROKER_DOM_READER_V1',
-                balance: numericVal,
-                rawText: rawText.trim(),
-                time: new Date().toLocaleTimeString('id-ID', { hour12: false }),
-                isInitialSync: isInitial
-            };
-            channel.postMessage(payload);
-            try { localStorage.setItem('BOT_TRADING_LIVE_BALANCE', JSON.stringify(payload)); } catch(e) {}
-            const hudBal = document.getElementById('sk-hud-balance');
-            if (hudBal) hudBal.innerText = "Rp " + numericVal.toLocaleString('id-ID');
-            return numericVal;
+                
+                // Cari elemen yang berada di Header (top < 150) dan mengandung "Rp"
+                if (rect.top >= 0 && rect.top < 150 && rect.width > 0 && txt.includes('Rp')) {
+                    const numericVal = parseInt(txt.replace(/[^0-9]/g, ""), 10);
+                    // Abaikan jika angkanya kebetulan sama dengan input amount (14000)
+                    if (!isNaN(numericVal) && numericVal > 0 && numericVal !== currentWager && numericVal !== 14000) {
+                        const payload = {
+                            source: 'BROKER_DOM_READER_V1',
+                            balance: numericVal,
+                            rawText: txt,
+                            time: new Date().toLocaleTimeString('id-ID', { hour12: false }),
+                            isInitialSync: isInitial
+                        };
+                        channel.postMessage(payload);
+                        try { localStorage.setItem('BOT_TRADING_LIVE_BALANCE', JSON.stringify(payload)); } catch(e) {}
+                        const hudBal = document.getElementById('sk-hud-balance');
+                        if (hudBal) hudBal.innerText = "Rp " + numericVal.toLocaleString('id-ID');
+                        return numericVal;
+                    }
+                }
+            }
         }
         return null;
     }
 
-    // Helper Pencari Tombol Hijau (NAIK) & Merah (TURUN) Otomatis (Agresif & Memastikan Tombol Terlihat)
+    // Helper Pencari Tombol Hijau (NAIK) & Merah (TURUN) Otomatis (Sensor Warna Visual)
     function findTradeButton(direction) {
-        const selector = direction === "UP" ? CONFIG.callSelector : CONFIG.putSelector;
-        // 1. Coba cari dengan Selector Utama, pastikan elemen TERLIHAT di layar (bukan hidden responsive)
-        const els = Array.from(document.querySelectorAll(selector));
+        // 1. Coba selector bawaan
+        const els = Array.from(document.querySelectorAll(direction === "UP" ? CONFIG.callSelector : CONFIG.putSelector));
         let visibleBtn = els.find(e => e.offsetParent !== null && window.getComputedStyle(e).display !== 'none');
         if (visibleBtn) return visibleBtn;
 
-        // 2. Super Brute-Force Fallback: Sapu bersih Kuadran Kanan Bawah Layar
-        const allElements = document.querySelectorAll('button, div[role="button"], div');
+        // 2. ULTRA-BRUTE-FORCE BERDASARKAN SENSOR WARNA PIXEL (Anti-Obfuscation)
+        const allElements = document.querySelectorAll('*');
         const rightHalf = window.innerWidth * 0.5;
-        const bottomHalf = window.innerHeight * 0.4; // Area tengah ke bawah
+        const bottomHalf = window.innerHeight * 0.4;
 
-        for (const el of allElements) {
+        // Looping mundur (cari elemen yang posisinya paling atas/depan di UI)
+        for (let i = allElements.length - 1; i >= 0; i--) {
+            const el = allElements[i];
             const rect = el.getBoundingClientRect();
-            // Harus berada di kanan bawah dan memiliki ukuran yang cukup untuk diklik
-            if (rect.left > rightHalf && rect.top > bottomHalf && rect.width > 30 && rect.height > 30) {
-                const style = window.getComputedStyle(el);
-                
-                // Filter hanya yang interaktif (pointer atau tag button)
-                if (style.cursor === 'pointer' || el.tagName.toLowerCase() === 'button') {
-                    const html = (el.innerHTML || '').toLowerCase();
-                    const cls = (el.className || '').toLowerCase();
-                    const testAttr = (el.getAttribute('data-test') || '').toLowerCase();
 
-                    if (direction === "UP") {
-                        if (cls.includes('up') || cls.includes('call') || html.includes('arrow-up') || testAttr.includes('up') || testAttr.includes('call') || style.backgroundColor === 'rgb(23, 184, 96)') return el;
-                    } else {
-                        if (cls.includes('down') || cls.includes('put') || html.includes('arrow-down') || testAttr.includes('down') || testAttr.includes('put') || style.backgroundColor === 'rgb(235, 77, 92)') return el;
+            // Hanya sapu kuadran kanan bawah layar dengan ukuran kotak cukup besar
+            if (rect.left > rightHalf && rect.top > bottomHalf && rect.width > 20 && rect.height > 20) {
+                const style = window.getComputedStyle(el);
+                const bg = style.backgroundColor;
+
+                // Ekstrak kode warna RGB
+                const match = bg.match(/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)/);
+                if (match) {
+                    const r = parseInt(match[1], 10), g = parseInt(match[2], 10), b = parseInt(match[3], 10);
+                    const isClickable = el.tagName === 'BUTTON' || style.cursor === 'pointer' || el.closest('button');
+
+                    if (isClickable) {
+                        if (direction === "UP") {
+                            // Jika Hijau lebih dominan dibanding Merah dan Biru
+                            if (g > r + 30 && g > b + 30) return el.tagName === 'BUTTON' ? el : (el.closest('button') || el);
+                        } else {
+                            // Jika Merah lebih dominan dibanding Hijau dan Biru
+                            if (r > g + 30 && r > b + 30) return el.tagName === 'BUTTON' ? el : (el.closest('button') || el);
+                        }
                     }
                 }
             }
@@ -905,12 +913,9 @@
             return;
         }
 
-        // Trik Bypass agar eksekusi klik pasti terbaca platform broker
         if(targetBtn.focus) targetBtn.focus();
         
-        // Targetkan tombol itu sendiri DAN elemen di dalamnya (svg/span) agar event tidak miss
         const targets = [targetBtn, targetBtn.firstElementChild].filter(Boolean);
-        
         targets.forEach(t => {
             ['pointerover', 'pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click'].forEach(type => {
                 t.dispatchEvent(new MouseEvent(type, { bubbles: true, cancelable: true, view: window, buttons: 1 }));
@@ -1006,18 +1011,56 @@
     }
     document.getElementById('sk-btn-toggle').onclick = () => toggleAutoRunStatus();
 
-    // 4. ENGINE TIMER ANTI-THROTTLING (Web Worker Bypass Background Limit)
-    // Menghindari browser pause/delay ketika tab broker tidak aktif.
+    // SINKRONISASI WAKTU CERDAS: Membaca teks countdown "00:XX" langsung dari chart Broker
+    function syncTimeWithBroker() {
+        const texts = Array.from(document.querySelectorAll('text, span, div'));
+        for (let i = 0; i < texts.length; i++) {
+            const t = texts[i];
+            if (t.children.length === 0 || t.tagName.toLowerCase() === 'text') {
+                const val = (t.textContent || '').trim();
+                const match = val.match(/^(?:00:([0-5][0-9])|01:00)$/);
+                
+                if (match) {
+                    if (val !== lastBrokerSecText) {
+                        lastBrokerSecText = val;
+                        const brokerSecsLeft = val === '01:00' ? 60 : parseInt(match[1], 10);
+                        const brokerCurrentSecond = 60 - brokerSecsLeft; // Konversi ke urutan detik 0-60
+                        
+                        const localNow = Date.now();
+                        const localCurrentSecond = new Date(localNow).getSeconds();
+                        
+                        let diffSecs = brokerCurrentSecond - localCurrentSecond;
+                        if (diffSecs > 30) diffSecs -= 60;
+                        if (diffSecs < -30) diffSecs += 60;
+                        
+                        // Hanya koreksi jika selisih waktu antara PC dan Broker melebihi batas 1 detik
+                        if (Math.abs(diffSecs) >= 1) {
+                            brokerTimeOffsetMs = diffSecs * 1000;
+                            const hudStatus = document.getElementById('sk-hud-status');
+                            if (hudStatus && hudStatus.innerText.includes("Ready")) {
+                                hudStatus.innerText = "⏱️ Sync Offset: " + (diffSecs > 0 ? "+" : "") + diffSecs + "s";
+                            }
+                        } else if (Math.abs(diffSecs) === 0 && brokerTimeOffsetMs !== 0) {
+                            brokerTimeOffsetMs = 0; 
+                        }
+                    }
+                    return; 
+                }
+            }
+        }
+    }
+
     let lastExecutedMinute = 0;
     
     function tickSniperEngine() {
-        const now = Date.now();
-        // Hitung menit berikutnya (Tepat 00.000)
-        const nextMinuteTime = Math.ceil(now / 60000) * 60000;
-        let msUntilNext = nextMinuteTime - now;
+        syncTimeWithBroker(); // Selalu pantau jam broker
+        
+        const adjustedNow = Date.now() + brokerTimeOffsetMs; // Terapkan Kompensasi Delay Jam
+        const nextMinuteTime = Math.ceil(adjustedNow / 60000) * 60000;
+        let msUntilNext = nextMinuteTime - adjustedNow;
         if (msUntilNext === 0) msUntilNext = 60000;
 
-        const sec = new Date(now).getSeconds();
+        const sec = new Date(adjustedNow).getSeconds();
         const remSec = sec === 0 ? 0 : 60 - sec;
 
         const timerEl = document.getElementById('sk-hud-timer');
@@ -1032,19 +1075,16 @@
             dirEl.style.color = nextDirection === "UP" ? "#22C55E" : nextDirection === "DOWN" ? "#EF4444" : "#A1A1AA";
         }
 
-        // TRIGGER LOGIC STRICT (Berdasarkan sisa milidetik)
+        // TRIGGER LOGIC STRICT
         if (isAutoRunning && msUntilNext <= preTriggerMs && lastExecutedMinute !== nextMinuteTime) {
             lastExecutedMinute = nextMinuteTime;
             if (nextDirection !== 'WAIT') {
                 triggerZeroDelayShot(nextDirection, currentWager);
-            } else {
-                console.log("[SCORPIONS KING] Sinyal WAIT, menunda eksekusi di menit ini.");
             }
         }
     }
 
-    // Perbaikan: Gunakan setInterval biasa karena Web Worker diblokir oleh keamanan (CSP) Stockity.
-    // Catatan: Usahakan tab Stockity tidak di-minimize saat bot berjalan agar timer tetap presisi.
+    // Interval diatur 15ms untuk menangkap momen paling presisi
     setInterval(() => tickSniperEngine(), 15);
 
     // Sinkronisasi DOM saldo setiap 2 detik
@@ -1059,7 +1099,6 @@
             currentWager = data.amount;
             preTriggerMs = data.preTriggerMs;
             
-            // Sync tombol start/stop Dashboard dengan HUD
             if (data.botStatus === 'RUNNING' && !isAutoRunning) {
                 toggleAutoRunStatus(true);
             } else if (data.botStatus !== 'RUNNING' && isAutoRunning) {
