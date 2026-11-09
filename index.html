@@ -959,8 +959,14 @@
                 <div style="color:#A1A1AA;font-size:9px;">SALDO TERBACA</div>
                 <div id="sk-hud-balance" style="font-weight:800;color:#FEF08A;margin-top:2px;">Membaca...</div>
             </div>
-            <div style="background:#09090B;padding:7px 9px;border-radius:10px;border:1px solid rgba(234,179,8,0.2);">
-                <div style="color:#A1A1AA;font-size:9px;">DETIK CANDLE</div>
+            <div style="background:#09090B;padding:7px 9px;border-radius:10px;border:1px solid rgba(234,179,8,0.2);position:relative;">
+                <div style="color:#A1A1AA;font-size:9px;display:flex;justify-content:space-between;align-items:center;">
+                    <span>DETIK CANDLE</span>
+                    <div style="display:flex;gap:3px;">
+                        <button id="sk-btn-min" style="background:#3F3F46;border:none;color:white;font-size:9px;padding:2px 5px;border-radius:3px;cursor:pointer;" title="Mundurkan 1 Detik">-1s</button>
+                        <button id="sk-btn-plus" style="background:#3F3F46;border:none;color:white;font-size:9px;padding:2px 5px;border-radius:3px;cursor:pointer;" title="Majukan 1 Detik">+1s</button>
+                    </div>
+                </div>
                 <div id="sk-hud-timer" style="font-weight:800;color:#22C55E;font-family:monospace;font-size:13px;margin-top:2px;">00:00.000</div>
             </div>
         </div>
@@ -996,6 +1002,14 @@
 
     document.getElementById('sk-btn-call').onclick = () => { triggerZeroDelayShot("UP", currentWager); };
     document.getElementById('sk-btn-put').onclick = () => { triggerZeroDelayShot("DOWN", currentWager); };
+    
+    document.getElementById('sk-btn-min').onclick = () => { brokerTimeOffsetMs -= 1000; updateOffsetDisplay(); };
+    document.getElementById('sk-btn-plus').onclick = () => { brokerTimeOffsetMs += 1000; updateOffsetDisplay(); };
+
+    function updateOffsetDisplay() {
+        const hudStatus = document.getElementById('sk-hud-status');
+        if (hudStatus) hudStatus.innerText = "⏱️ Kalibrasi: " + (brokerTimeOffsetMs > 0 ? "+" : "") + (brokerTimeOffsetMs/1000) + "s";
+    }
 
     function toggleAutoRunStatus(forceStatus = null) {
         isAutoRunning = forceStatus !== null ? forceStatus : !isAutoRunning;
@@ -1011,51 +1025,10 @@
     }
     document.getElementById('sk-btn-toggle').onclick = () => toggleAutoRunStatus();
 
-    // SINKRONISASI WAKTU CERDAS: Membaca teks countdown "00:XX" langsung dari chart Broker
-    function syncTimeWithBroker() {
-        const texts = Array.from(document.querySelectorAll('text, span, div'));
-        for (let i = 0; i < texts.length; i++) {
-            const t = texts[i];
-            if (t.children.length === 0 || t.tagName.toLowerCase() === 'text') {
-                const val = (t.textContent || '').trim();
-                const match = val.match(/^(?:00:([0-5][0-9])|01:00)$/);
-                
-                if (match) {
-                    if (val !== lastBrokerSecText) {
-                        lastBrokerSecText = val;
-                        const brokerSecsLeft = val === '01:00' ? 60 : parseInt(match[1], 10);
-                        const brokerCurrentSecond = 60 - brokerSecsLeft; // Konversi ke urutan detik 0-60
-                        
-                        const localNow = Date.now();
-                        const localCurrentSecond = new Date(localNow).getSeconds();
-                        
-                        let diffSecs = brokerCurrentSecond - localCurrentSecond;
-                        if (diffSecs > 30) diffSecs -= 60;
-                        if (diffSecs < -30) diffSecs += 60;
-                        
-                        // Hanya koreksi jika selisih waktu antara PC dan Broker melebihi batas 1 detik
-                        if (Math.abs(diffSecs) >= 1) {
-                            brokerTimeOffsetMs = diffSecs * 1000;
-                            const hudStatus = document.getElementById('sk-hud-status');
-                            if (hudStatus && hudStatus.innerText.includes("Ready")) {
-                                hudStatus.innerText = "⏱️ Sync Offset: " + (diffSecs > 0 ? "+" : "") + diffSecs + "s";
-                            }
-                        } else if (Math.abs(diffSecs) === 0 && brokerTimeOffsetMs !== 0) {
-                            brokerTimeOffsetMs = 0; 
-                        }
-                    }
-                    return; 
-                }
-            }
-        }
-    }
-
     let lastExecutedMinute = 0;
     
     function tickSniperEngine() {
-        syncTimeWithBroker(); // Selalu pantau jam broker
-        
-        const adjustedNow = Date.now() + brokerTimeOffsetMs; // Terapkan Kompensasi Delay Jam
+        const adjustedNow = Date.now() + brokerTimeOffsetMs; // Terapkan Kompensasi Delay Jam Manual
         const nextMinuteTime = Math.ceil(adjustedNow / 60000) * 60000;
         let msUntilNext = nextMinuteTime - adjustedNow;
         if (msUntilNext === 0) msUntilNext = 60000;
