@@ -460,14 +460,14 @@
 
             // ================= STATE PANEL KANAN: BRIDGE & SELECTOR =================
             const [brokerPreset, setBrokerPreset] = useState('stockity');
-            const [callSelector, setCallSelector] = useState('.deal-buttons__button_up, .btn-call, [data-test="deal-button-up"], [data-test="control-call"], button.bg-green, .vui-button--green');
-            const [putSelector, setPutSelector] = useState('.deal-buttons__button_down, .btn-put, [data-test="deal-button-down"], [data-test="control-put"], button.bg-red, .vui-button--red');
+            const [callSelector, setCallSelector] = useState('.deal-button--up, .deal-buttons__button_up, .btn-call, [data-test="deal-button-up"], [data-test="control-call"], button.bg-green, .vui-button--green');
+            const [putSelector, setPutSelector] = useState('.deal-button--down, .deal-buttons__button_down, .btn-put, [data-test="deal-button-down"], [data-test="control-put"], button.bg-red, .vui-button--red');
             const [amountSelector, setAmountSelector] = useState('input[name="amount"], .amount-input input');
-            const [balanceSelector, setBalanceSelector] = useState('.header__balance-amount, .balance_current, [data-test="balance-amount"], .account-balance__amount, .balance-text');
+            const [balanceSelector, setBalanceSelector] = useState('.header-balance__sum, .header__balance-amount, .balance_current, [data-test="balance-amount"], .account-balance__amount, .balance-text');
             const [activeRightTab, setActiveRightTab] = useState('script'); // 'script' | 'guide' | 'config'
             const [copiedScript, setCopiedScript] = useState(false);
 
-            // ================= STATE FOOTER: LOG AKTIVITAS =================
+            // ================= FOOTER LOGS =================
             const [tradeLogs, setTradeLogs] = useState([]);
 
             // Helper Notifikasi Toast (Tanpa alert browser)
@@ -482,9 +482,9 @@
             const handleBrokerPresetChange = (preset) => {
                 setBrokerPreset(preset);
                 if (preset === 'stockity') {
-                    setCallSelector('.deal-buttons__button_up, .btn-call, [data-test="deal-button-up"], [data-test="control-call"]');
-                    setPutSelector('.deal-buttons__button_down, .btn-put, [data-test="deal-button-down"], [data-test="control-put"]');
-                    setBalanceSelector('.header__balance-amount, .balance_current, [data-test="balance-amount"], .account-balance__amount, .balance-text');
+                    setCallSelector('.deal-button--up, .deal-buttons__button_up, .btn-call, [data-test="deal-button-up"], [data-test="control-call"]');
+                    setPutSelector('.deal-button--down, .deal-buttons__button_down, .btn-put, [data-test="deal-button-down"], [data-test="control-put"]');
+                    setBalanceSelector('.header-balance__sum, .header__balance-amount, .balance_current, [data-test="balance-amount"], .account-balance__amount, .balance-text');
                 } else if (preset === 'binomo') {
                     setCallSelector('.call-btn, vui-button.btn-up, [data-qa="call-button"]');
                     setPutSelector('.put-btn, vui-button.btn-down, [data-qa="put-button"]');
@@ -824,14 +824,17 @@
 
     // 1. Fungsi Pembaca Nominal Isi Akun (Saldo Real/Demo) Otomatis dari DOM Broker
     function readAndSyncBrokerBalance(isInitial = false) {
-        let balEl = document.querySelector(CONFIG.balanceSelector);
+        let balEls = Array.from(document.querySelectorAll(CONFIG.balanceSelector));
+        let balEl = balEls.find(el => el.offsetParent !== null && (el.innerText || '').includes('Rp'));
+
         if (!balEl) {
-            // Smart Fallback: Cari elemen yang mengandung "Rp" di bagian atas layar (Header)
-            const allSpans = Array.from(document.querySelectorAll('span, div, p, strong'));
+            // Smart Fallback: Cari elemen yang mengandung "Rp" khusus di bagian ATAS layar (Header)
+            const allSpans = Array.from(document.querySelectorAll('span, div, p, strong, b'));
             balEl = allSpans.find(el => {
                 const txt = (el.innerText || '').trim();
                 const rect = el.getBoundingClientRect();
-                return /^Rp\\s?[0-9.,]+/.test(txt) && rect.top >= 0 && rect.top < 180 && el.children.length === 0;
+                // Pastikan elemen ada di area atas (top < 150) agar tidak tertukar dengan input amount di bawah
+                return rect.top >= 0 && rect.top < 150 && rect.width > 0 && /^Rp\\s?[0-9.,]+/.test(txt) && el.children.length === 0;
             });
         }
         if (!balEl) return null;
@@ -854,26 +857,37 @@
         return null;
     }
 
-    // Helper Pencari Tombol Hijau (NAIK) & Merah (TURUN) Otomatis (Agresif untuk Mobile/Web)
+    // Helper Pencari Tombol Hijau (NAIK) & Merah (TURUN) Otomatis (Agresif & Memastikan Tombol Terlihat)
     function findTradeButton(direction) {
         const selector = direction === "UP" ? CONFIG.callSelector : CONFIG.putSelector;
-        let btn = document.querySelector(selector);
-        if (btn) return btn;
+        // 1. Coba cari dengan Selector Utama, pastikan elemen TERLIHAT di layar (bukan hidden responsive)
+        const els = Array.from(document.querySelectorAll(selector));
+        let visibleBtn = els.find(e => e.offsetParent !== null && window.getComputedStyle(e).display !== 'none');
+        if (visibleBtn) return visibleBtn;
 
-        // Smart Fallback: Cari semua tombol di bagian Bawah layar (area trading)
-        const buttons = Array.from(document.querySelectorAll('button, [role="button"], .deal-button'));
-        for (const el of buttons) {
+        // 2. Super Brute-Force Fallback: Sapu bersih Kuadran Kanan Bawah Layar
+        const allElements = document.querySelectorAll('button, div[role="button"], div');
+        const rightHalf = window.innerWidth * 0.5;
+        const bottomHalf = window.innerHeight * 0.4; // Area tengah ke bawah
+
+        for (const el of allElements) {
             const rect = el.getBoundingClientRect();
-            if (rect.top < window.innerHeight * 0.4) continue; // Abaikan tombol di bagian atas layar
+            // Harus berada di kanan bawah dan memiliki ukuran yang cukup untuk diklik
+            if (rect.left > rightHalf && rect.top > bottomHalf && rect.width > 30 && rect.height > 30) {
+                const style = window.getComputedStyle(el);
+                
+                // Filter hanya yang interaktif (pointer atau tag button)
+                if (style.cursor === 'pointer' || el.tagName.toLowerCase() === 'button') {
+                    const html = (el.innerHTML || '').toLowerCase();
+                    const cls = (el.className || '').toLowerCase();
+                    const testAttr = (el.getAttribute('data-test') || '').toLowerCase();
 
-            const html = (el.innerHTML || '').toLowerCase();
-            const cls = (el.className || '').toLowerCase();
-            const testAttr = (el.getAttribute('data-test') || '').toLowerCase();
-
-            if (direction === "UP") {
-                if (cls.includes('call') || cls.includes('up') || cls.includes('green') || testAttr.includes('call') || testAttr.includes('up') || html.includes('call')) return el;
-            } else {
-                if (cls.includes('put') || cls.includes('down') || cls.includes('red') || testAttr.includes('put') || testAttr.includes('down') || html.includes('put')) return el;
+                    if (direction === "UP") {
+                        if (cls.includes('up') || cls.includes('call') || html.includes('arrow-up') || testAttr.includes('up') || testAttr.includes('call') || style.backgroundColor === 'rgb(23, 184, 96)') return el;
+                    } else {
+                        if (cls.includes('down') || cls.includes('put') || html.includes('arrow-down') || testAttr.includes('down') || testAttr.includes('put') || style.backgroundColor === 'rgb(235, 77, 92)') return el;
+                    }
+                }
             }
         }
         return null;
