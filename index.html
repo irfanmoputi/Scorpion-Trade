@@ -460,10 +460,10 @@
 
             // ================= STATE PANEL KANAN: BRIDGE & SELECTOR =================
             const [brokerPreset, setBrokerPreset] = useState('stockity');
-            const [callSelector, setCallSelector] = useState('.deal-buttons__button_up, .btn-call, [data-test="deal-button-up"], button.bg-green, .vui-button--green');
-            const [putSelector, setPutSelector] = useState('.deal-buttons__button_down, .btn-put, [data-test="deal-button-down"], button.bg-red, .vui-button--red');
+            const [callSelector, setCallSelector] = useState('.deal-buttons__button_up, .btn-call, [data-test="deal-button-up"], [data-test="control-call"], button.bg-green, .vui-button--green');
+            const [putSelector, setPutSelector] = useState('.deal-buttons__button_down, .btn-put, [data-test="deal-button-down"], [data-test="control-put"], button.bg-red, .vui-button--red');
             const [amountSelector, setAmountSelector] = useState('input[name="amount"], .amount-input input');
-            const [balanceSelector, setBalanceSelector] = useState('.header__balance-amount, .balance_current, [data-test="balance-amount"], .account-balance__amount');
+            const [balanceSelector, setBalanceSelector] = useState('.header__balance-amount, .balance_current, [data-test="balance-amount"], .account-balance__amount, .balance-text');
             const [activeRightTab, setActiveRightTab] = useState('script'); // 'script' | 'guide' | 'config'
             const [copiedScript, setCopiedScript] = useState(false);
 
@@ -482,9 +482,9 @@
             const handleBrokerPresetChange = (preset) => {
                 setBrokerPreset(preset);
                 if (preset === 'stockity') {
-                    setCallSelector('.deal-buttons__button_up, .btn-call, [data-test="deal-button-up"]');
-                    setPutSelector('.deal-buttons__button_down, .btn-put, [data-test="deal-button-down"]');
-                    setBalanceSelector('.header__balance-amount, .balance_current, [data-test="balance-amount"], .account-balance__amount');
+                    setCallSelector('.deal-buttons__button_up, .btn-call, [data-test="deal-button-up"], [data-test="control-call"]');
+                    setPutSelector('.deal-buttons__button_down, .btn-put, [data-test="deal-button-down"], [data-test="control-put"]');
+                    setBalanceSelector('.header__balance-amount, .balance_current, [data-test="balance-amount"], .account-balance__amount, .balance-text');
                 } else if (preset === 'binomo') {
                     setCallSelector('.call-btn, vui-button.btn-up, [data-qa="call-button"]');
                     setPutSelector('.put-btn, vui-button.btn-down, [data-qa="put-button"]');
@@ -826,10 +826,12 @@
     function readAndSyncBrokerBalance(isInitial = false) {
         let balEl = document.querySelector(CONFIG.balanceSelector);
         if (!balEl) {
+            // Smart Fallback: Cari elemen yang mengandung "Rp" di bagian atas layar (Header)
             const allSpans = Array.from(document.querySelectorAll('span, div, p, strong'));
             balEl = allSpans.find(el => {
                 const txt = (el.innerText || '').trim();
-                return /^Rp\s?[0-9.,]+/.test(txt) && el.children.length === 0 && el.getBoundingClientRect().top < 120;
+                const rect = el.getBoundingClientRect();
+                return /^Rp\\s?[0-9.,]+/.test(txt) && rect.top >= 0 && rect.top < 180 && el.children.length === 0;
             });
         }
         if (!balEl) return null;
@@ -852,24 +854,26 @@
         return null;
     }
 
-    // Helper Pencari Tombol Hijau (NAIK) & Merah (TURUN) Otomatis
+    // Helper Pencari Tombol Hijau (NAIK) & Merah (TURUN) Otomatis (Agresif untuk Mobile/Web)
     function findTradeButton(direction) {
         const selector = direction === "UP" ? CONFIG.callSelector : CONFIG.putSelector;
         let btn = document.querySelector(selector);
         if (btn) return btn;
 
-        const buttons = Array.from(document.querySelectorAll('button, [role="button"]')).filter(el => {
-            const rect = el.getBoundingClientRect();
-            return rect.width > 60 && rect.height > 32 && rect.top > window.innerHeight * 0.5;
-        });
-
+        // Smart Fallback: Cari semua tombol di bagian Bawah layar (area trading)
+        const buttons = Array.from(document.querySelectorAll('button, [role="button"], .deal-button'));
         for (const el of buttons) {
-            const bg = window.getComputedStyle(el).backgroundColor || '';
-            const m = bg.match(/rgb\\((\\d+),\\s*(\\d+),\\s*(\\d+)/);
-            if (m) {
-                const r = parseInt(m[1], 10), g = parseInt(m[2], 10);
-                if (direction === "UP" && g > r + 35 && g > 110) return el;
-                if (direction === "DOWN" && r > g + 35 && r > 140) return el;
+            const rect = el.getBoundingClientRect();
+            if (rect.top < window.innerHeight * 0.4) continue; // Abaikan tombol di bagian atas layar
+
+            const html = (el.innerHTML || '').toLowerCase();
+            const cls = (el.className || '').toLowerCase();
+            const testAttr = (el.getAttribute('data-test') || '').toLowerCase();
+
+            if (direction === "UP") {
+                if (cls.includes('call') || cls.includes('up') || cls.includes('green') || testAttr.includes('call') || testAttr.includes('up') || html.includes('call')) return el;
+            } else {
+                if (cls.includes('put') || cls.includes('down') || cls.includes('red') || testAttr.includes('put') || testAttr.includes('down') || html.includes('put')) return el;
             }
         }
         return null;
@@ -889,8 +893,14 @@
 
         // Trik Bypass agar eksekusi klik pasti terbaca platform broker
         if(targetBtn.focus) targetBtn.focus();
-        ['pointerover', 'pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click'].forEach(type => {
-            targetBtn.dispatchEvent(new MouseEvent(type, { bubbles: true, cancelable: true, view: window, buttons: 1 }));
+        
+        // Targetkan tombol itu sendiri DAN elemen di dalamnya (svg/span) agar event tidak miss
+        const targets = [targetBtn, targetBtn.firstElementChild].filter(Boolean);
+        
+        targets.forEach(t => {
+            ['pointerover', 'pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click'].forEach(type => {
+                t.dispatchEvent(new MouseEvent(type, { bubbles: true, cancelable: true, view: window, buttons: 1 }));
+            });
         });
 
         shotTotal++;
