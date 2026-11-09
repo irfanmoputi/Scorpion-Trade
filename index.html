@@ -440,19 +440,12 @@
             // ================= STATE PANEL TENGAH: TIMING & SIMULATOR =================
             const [secondsLeft, setSecondsLeft] = useState(60);
             const [autoSimOnZero, setAutoSimOnZero] = useState(false);
-            const [candleHistory, setCandleHistory] = useState([
-                { id: 1, dir: 'UP', time: '12:01:00' },
-                { id: 2, dir: 'DOWN', time: '12:02:00' },
-                { id: 3, dir: 'UP', time: '12:03:00' },
-                { id: 4, dir: 'UP', time: '12:04:00' },
-                { id: 5, dir: 'DOWN', time: '12:05:00' },
-                { id: 6, dir: 'UP', time: '12:06:00' },
-            ]);
+            const [candleHistory, setCandleHistory] = useState([]);
             
             // State Eksekusi & Perhitungan Martingale
             const [currentStep, setCurrentStep] = useState(0);
             const [pingPongSignal, setPingPongSignal] = useState('UP'); // Default arah awal Metode 1
-            const [cumulativeProfit, setCumulativeProfit] = useState(11900);
+            const [cumulativeProfit, setCumulativeProfit] = useState(0);
             const [initialBalance, setInitialBalance] = useState(1000000); // Modal Awal Akun (Rp)
             const [liveBrokerBalance, setLiveBrokerBalance] = useState(null); // Saldo terbaca langsung dari DOM Broker
             const [lastBalanceSync, setLastBalanceSync] = useState(null);
@@ -475,22 +468,7 @@
             const [copiedScript, setCopiedScript] = useState(false);
 
             // ================= STATE FOOTER: LOG AKTIVITAS =================
-            const [tradeLogs, setTradeLogs] = useState([
-                {
-                    id: 'INIT-01',
-                    time: '12:05:00.012',
-                    method: 'Follow Trend',
-                    action: 'UP',
-                    candleResult: 'UP',
-                    status: 'WIN',
-                    amount: 14000,
-                    profitChange: 11900,
-                    totalProfit: 11900,
-                    balanceAfter: 1011900,
-                    latencyMs: 12,
-                    step: 0
-                }
-            ]);
+            const [tradeLogs, setTradeLogs] = useState([]);
 
             // Helper Notifikasi Toast (Tanpa alert browser)
             const showNotification = (title, message, type = 'info') => {
@@ -772,45 +750,24 @@
                     const now = new Date();
                     const sec = now.getSeconds();
                     const ms = now.getMilliseconds();
-                    const currentMinuteKey = `${now.getHours()}:${now.getMinutes()}`;
 
                     // Hitung total milidetik menuju pergantian menit berikutnya (detik 00.000)
-                    const totalMsRemaining = (59 - sec) * 1000 + (1000 - ms);
                     setSecondsLeft(sec === 0 ? 0 : 60 - sec);
                     setMsLeft(1000 - ms);
 
-                    // SISTEM KECEPATAN SHOT / OP OTOMATIS DI AWAL MENIT TANPA DELAY 1 DETIKPUN
-                    // Mengeksekusi tepat pada window preShotLeadMs (misal 150ms sebelum detik 00.000 atau tepat 00.000)
-                    if (
-                        botStatus === 'RUNNING' &&
-                        zeroDelayShot &&
-                        totalMsRemaining <= preShotLeadMs &&
-                        lastFiredMinuteRef.current !== currentMinuteKey
-                    ) {
-                        lastFiredMinuteRef.current = currentMinuteKey;
-                        const activeSig = nextSignalRef.current?.signal;
-
-                        if (activeSig && activeSig !== 'WAIT') {
-                            // Langsung tembak sinyal ke DOM Stockity/Binomo pada milidetik pergantian candle
-                            broadcastSignalToBroker(
-                                activeSig,
-                                currentAmountRef.current,
-                                STRATEGIES[selectedMethod].shortName,
-                                true
-                            );
-                            setShotCount((prev) => prev + 1);
-                        }
-
-                        // Jika Auto-Simulasi aktif, jalankan evaluasi candle tepat di detik 00.000
-                        if (autoSimOnZero) {
-                            const randomDir = Math.random() > 0.46 ? 'UP' : 'DOWN';
-                            triggerRef.current(randomDir, true);
-                        } else if (activeSig !== 'WAIT') {
-                            showNotification(
-                                '⚡ ZERO-DELAY SHOT TERKIRIM!',
-                                `Sinyal OP ${activeSig === 'UP' ? 'NAIK (CALL)' : 'TURUN (PUT)'} ditembakkan tepat di awal menit (${preShotLeadMs}ms Pre-Trigger).`,
-                                'success'
-                            );
+                    // Note: Auto-Shot ke Broker kini sepenuhnya dikendalikan oleh Injected Script di tab Broker
+                    // (menggunakan Web Worker) agar tidak terjadi double-trigger dan menghindari tab-throttling.
+                    
+                    if (botStatus === 'RUNNING' && autoSimOnZero) {
+                        const totalMsRemaining = (59 - sec) * 1000 + (1000 - ms);
+                        const currentMinuteKey = `${now.getHours()}:${now.getMinutes()}`;
+                        if (totalMsRemaining <= preShotLeadMs && lastFiredMinuteRef.current !== currentMinuteKey) {
+                            lastFiredMinuteRef.current = currentMinuteKey;
+                            const activeSig = nextSignalRef.current?.signal;
+                            if (activeSig && activeSig !== 'WAIT') {
+                                const randomDir = Math.random() > 0.46 ? 'UP' : 'DOWN';
+                                triggerRef.current(randomDir, true);
+                            }
                         }
                     }
 
@@ -819,12 +776,30 @@
 
                 animFrameId = requestAnimationFrame(updateHighPrecisionClock);
                 return () => cancelAnimationFrame(animFrameId);
-            }, [botStatus, zeroDelayShot, preShotLeadMs, autoSimOnZero, selectedMethod]);
+            }, [botStatus, preShotLeadMs, autoSimOnZero]);
+
+            // ================= BROADCAST STATE SINKRONISASI KE TAB BROKER =================
+            // Memberi tahu tab broker apa sinyal berikutnya dan status bot, tapi eksekusi dipegang broker tab
+            useEffect(() => {
+                const payload = {
+                    source: 'BOT_TRADING_ENGINE_V1',
+                    type: 'SYNC_STATE',
+                    botStatus: botStatus,
+                    nextSignal: nextSignalData.signal,
+                    amount: currentTradeAmount,
+                    preTriggerMs: preShotLeadMs
+                };
+                try {
+                    const bc = new BroadcastChannel('bot_trading_engine_v1_channel');
+                    bc.postMessage(payload);
+                    bc.close();
+                } catch (e) {}
+            }, [botStatus, nextSignalData, currentTradeAmount, preShotLeadMs]);
 
             // ================= GENERATE KODE JAVASCRIPT AUTO-CLICKER, BALANCE READER & ZERO-DELAY ENGINE =================
             const generatedBridgeScript = useMemo(() => {
                 return `// =========================================================================
-// 🦂 SCORPIONS KING v1.0 - FLOATING HUD OVERLAY, ZERO-DELAY SHOT & BALANCE READER
+// 🦂 SCORPIONS KING v1.0 - FLOATING HUD OVERLAY & ULTRA-STRICT ZERO-DELAY SHOT
 // Cara Pakai: Copy script ini -> Buka Tab ${brokerPreset === 'stockity' ? 'Stockity' : 'Binomo'} -> Tekan F12 (Console) -> Paste & Enter
 // =========================================================================
 (function() {
@@ -832,11 +807,6 @@
     const CONFIG = {
         broker: "${brokerPreset.toUpperCase()}",
         strategy: "${STRATEGIES[selectedMethod].shortName}",
-        baseAmount: ${baseAmount},
-        martingale: ${martingaleEnabled},
-        multiplier: ${martingaleMultiplier},
-        maxStep: ${maxMartingaleStep},
-        preTriggerMs: ${preShotLeadMs},
         callSelector: '${callSelector}',
         putSelector: '${putSelector}',
         amountSelector: '${amountSelector}',
@@ -847,14 +817,14 @@
     let isAutoRunning = false;
     let nextDirection = "${nextSignalData.signal === 'DOWN' ? 'DOWN' : 'UP'}";
     let currentWager = ${currentTradeAmount};
+    let preTriggerMs = ${preShotLeadMs};
     let shotTotal = 0;
 
-    console.log("%c[🦂 SCORPIONS KING] Floating Overlay & Zero-Delay Sniper Aktif di " + CONFIG.broker + "!", "color:#FACC15; background:#050507; padding:6px 12px; border:1px solid #EAB308; border-radius:6px; font-weight:bold; font-size:13px;");
+    console.log("%c[🦂 SCORPIONS KING] Ultra-Strict Sniper Aktif di " + CONFIG.broker + "!", "color:#FACC15; background:#050507; padding:6px 12px; border:1px solid #EAB308; border-radius:6px; font-weight:bold; font-size:13px;");
 
     // 1. Fungsi Pembaca Nominal Isi Akun (Saldo Real/Demo) Otomatis dari DOM Broker
     function readAndSyncBrokerBalance(isInitial = false) {
         let balEl = document.querySelector(CONFIG.balanceSelector);
-        // Fallback otomatis mencari teks saldo "Rp" di bagian atas layar Stockity (seperti pada screenshot Anda)
         if (!balEl) {
             const allSpans = Array.from(document.querySelectorAll('span, div, p, strong'));
             balEl = allSpans.find(el => {
@@ -882,13 +852,12 @@
         return null;
     }
 
-    // Helper Pencari Tombol Hijau (NAIK) & Merah (TURUN) Otomatis jika class CSS berubah
+    // Helper Pencari Tombol Hijau (NAIK) & Merah (TURUN) Otomatis
     function findTradeButton(direction) {
         const selector = direction === "UP" ? CONFIG.callSelector : CONFIG.putSelector;
         let btn = document.querySelector(selector);
         if (btn) return btn;
 
-        // Auto-Scan berdasarkan warna latar tombol di bagian bawah layar Stockity/Binomo
         const buttons = Array.from(document.querySelectorAll('button, [role="button"]')).filter(el => {
             const rect = el.getBoundingClientRect();
             return rect.width > 60 && rect.height > 32 && rect.top > window.innerHeight * 0.5;
@@ -906,7 +875,7 @@
         return null;
     }
 
-    // 2. Fungsi Instant Shot (Tanpa Delay 1 Detikpun)
+    // 2. Fungsi Instant Shot Tembus React Synthetic Events (Super Strict)
     function triggerZeroDelayShot(direction, amount) {
         const t0 = performance.now();
         const targetBtn = findTradeButton(direction);
@@ -918,8 +887,10 @@
             return;
         }
 
-        ['pointerdown', 'mousedown', 'mouseup', 'click'].forEach(type => {
-            targetBtn.dispatchEvent(new MouseEvent(type, { bubbles: true, cancelable: true, view: window }));
+        // Trik Bypass agar eksekusi klik pasti terbaca platform broker
+        if(targetBtn.focus) targetBtn.focus();
+        ['pointerover', 'pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click'].forEach(type => {
+            targetBtn.dispatchEvent(new MouseEvent(type, { bubbles: true, cancelable: true, view: window, buttons: 1 }));
         });
 
         shotTotal++;
@@ -936,7 +907,7 @@
         setTimeout(() => readAndSyncBrokerBalance(false), 400);
     }
 
-    // 3. Buat Panel Floating HUD SCORPIONS KING Langsung di Atas Chart Stockity / Binomo
+    // 3. Buat Panel Floating HUD SCORPIONS KING
     const oldHud = document.getElementById('scorpions-king-floating-hud');
     if (oldHud) oldHud.remove();
 
@@ -952,7 +923,7 @@
                     <div style="font-size:10px;color:#A1A1AA;">\${CONFIG.broker} • \${CONFIG.strategy}</div>
                 </div>
             </div>
-            <span id="sk-hud-badge" style="font-size:10px;font-weight:800;padding:3px 8px;border-radius:99px;background:#27272A;color:#FDE047;border:1px solid #EAB308;">READY</span>
+            <span id="sk-hud-badge" style="font-size:10px;font-weight:800;padding:3px 8px;border-radius:99px;background:#27272A;color:#FDE047;border:1px solid #EAB308;">STANDBY</span>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;font-size:11px;">
             <div style="background:#09090B;padding:7px 9px;border-radius:10px;border:1px solid rgba(234,179,8,0.2);">
@@ -966,7 +937,7 @@
         </div>
         <div style="background:#09090B;padding:8px 10px;border-radius:10px;border:1px solid rgba(255,255,255,0.08);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;font-size:11px;">
             <span>Sinyal: <strong id="sk-hud-dir" style="color:#22C55E;">\${nextDirection === 'UP' ? 'NAIK (CALL)' : 'TURUN (PUT)'}</strong></span>
-            <span id="sk-hud-status" style="font-size:10px;color:#FACC15;">Standby 00.000s</span>
+            <span id="sk-hud-status" style="font-size:10px;color:#FACC15;">Ready Sniper</span>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;">
             <button id="sk-btn-call" style="padding:8px;border-radius:9px;background:#16A34A;color:#050507;font-weight:800;font-size:11px;border:none;cursor:pointer;">⚡ SHOT HIJAU</button>
@@ -978,7 +949,7 @@
     \`;
     document.body.appendChild(hud);
 
-    // Fitur Geser (Drag) Panel HUD di Layar Broker
+    // Drag (Geser) Panel HUD
     let isDragging = false, offsetX = 0, offsetY = 0;
     const dragHeader = document.getElementById('sk-hud-drag');
     dragHeader.addEventListener('mousedown', (e) => {
@@ -994,87 +965,85 @@
     });
     window.addEventListener('mouseup', () => { isDragging = false; });
 
-    // Event Tombol pada Floating HUD
-    document.getElementById('sk-btn-call').onclick = () => {
-        nextDirection = "UP";
-        document.getElementById('sk-hud-dir').innerText = "NAIK (CALL)";
-        document.getElementById('sk-hud-dir').style.color = "#22C55E";
-        triggerZeroDelayShot("UP", currentWager);
-    };
-    document.getElementById('sk-btn-put').onclick = () => {
-        nextDirection = "DOWN";
-        document.getElementById('sk-hud-dir').innerText = "TURUN (PUT)";
-        document.getElementById('sk-hud-dir').style.color = "#EF4444";
-        triggerZeroDelayShot("DOWN", currentWager);
-    };
-    document.getElementById('sk-btn-toggle').onclick = function() {
-        isAutoRunning = !isAutoRunning;
+    document.getElementById('sk-btn-call').onclick = () => { triggerZeroDelayShot("UP", currentWager); };
+    document.getElementById('sk-btn-put').onclick = () => { triggerZeroDelayShot("DOWN", currentWager); };
+
+    function toggleAutoRunStatus(forceStatus = null) {
+        isAutoRunning = forceStatus !== null ? forceStatus : !isAutoRunning;
+        const btnToggle = document.getElementById('sk-btn-toggle');
         const badge = document.getElementById('sk-hud-badge');
         if (isAutoRunning) {
-            this.innerText = "⏹ HENTIKAN AUTO-SHOT";
-            this.style.background = "#DC2626";
-            this.style.color = "#FFFFFF";
-            badge.innerText = "RUNNING";
-            badge.style.background = "#16A34A";
-            badge.style.color = "#050507";
+            if(btnToggle) { btnToggle.innerText = "⏹ HENTIKAN AUTO-SHOT"; btnToggle.style.background = "#DC2626"; btnToggle.style.color = "#FFFFFF"; }
+            if(badge) { badge.innerText = "RUNNING"; badge.style.background = "#16A34A"; badge.style.color = "#050507"; }
         } else {
-            this.innerText = "▶ AKTIFKAN AUTO-SHOT AWAL MENIT (00:00)";
-            this.style.background = "linear-gradient(180deg,#FEF08A,#CA8A04)";
-            this.style.color = "#050507";
-            badge.innerText = "PAUSED";
-            badge.style.background = "#27272A";
-            badge.style.color = "#FDE047";
+            if(btnToggle) { btnToggle.innerText = "▶ AKTIFKAN AUTO-SHOT AWAL MENIT (00:00)"; btnToggle.style.background = "linear-gradient(180deg,#FEF08A,#CA8A04)"; btnToggle.style.color = "#050507"; }
+            if(badge) { badge.innerText = "STANDBY"; badge.style.background = "#27272A"; badge.style.color = "#FDE047"; }
         }
-    };
+    }
+    document.getElementById('sk-btn-toggle').onclick = () => toggleAutoRunStatus();
 
-    // 4. Loop Presisi Tinggi untuk Countdown & Auto-Shot Tepat Detik 00.000
-    let lastMinuteKey = "";
+    // 4. ENGINE TIMER ANTI-THROTTLING (Web Worker Bypass Background Limit)
+    // Menghindari browser pause/delay ketika tab broker tidak aktif.
+    let lastExecutedMinute = 0;
+    
     function tickSniperEngine() {
-        const now = new Date();
-        const sec = now.getSeconds();
-        const ms = now.getMilliseconds();
-        const minKey = now.getHours() + ":" + now.getMinutes();
+        const now = Date.now();
+        // Hitung menit berikutnya (Tepat 00.000)
+        const nextMinuteTime = Math.ceil(now / 60000) * 60000;
+        let msUntilNext = nextMinuteTime - now;
+        if (msUntilNext === 0) msUntilNext = 60000;
+
+        const sec = new Date(now).getSeconds();
         const remSec = sec === 0 ? 0 : 60 - sec;
-        const remMs = (59 - sec) * 1000 + (1000 - ms);
 
         const timerEl = document.getElementById('sk-hud-timer');
         if (timerEl) {
-            timerEl.innerText = "00:" + String(remSec).padStart(2, '0') + "." + String(1000 - ms).padStart(3, '0');
+            timerEl.innerText = "00:" + String(remSec).padStart(2, '0') + "." + String(msUntilNext % 1000).padStart(3, '0');
             timerEl.style.color = remSec <= 3 ? "#FACC15" : "#22C55E";
         }
 
-        if (isAutoRunning && remMs <= CONFIG.preTriggerMs && lastMinuteKey !== minKey) {
-            lastMinuteKey = minKey;
-            triggerZeroDelayShot(nextDirection, currentWager);
-            if (CONFIG.strategy === "Anti-Sideway") {
-                nextDirection = nextDirection === "UP" ? "DOWN" : "UP";
-                const dirEl = document.getElementById('sk-hud-dir');
-                if (dirEl) {
-                    dirEl.innerText = nextDirection === "UP" ? "NAIK (CALL)" : "TURUN (PUT)";
-                    dirEl.style.color = nextDirection === "UP" ? "#22C55E" : "#EF4444";
-                }
+        const dirEl = document.getElementById('sk-hud-dir');
+        if (dirEl) {
+            dirEl.innerText = nextDirection === "UP" ? "NAIK (CALL)" : nextDirection === "DOWN" ? "TURUN (PUT)" : "WAITING";
+            dirEl.style.color = nextDirection === "UP" ? "#22C55E" : nextDirection === "DOWN" ? "#EF4444" : "#A1A1AA";
+        }
+
+        // TRIGGER LOGIC STRICT (Berdasarkan sisa milidetik)
+        if (isAutoRunning && msUntilNext <= preTriggerMs && lastExecutedMinute !== nextMinuteTime) {
+            lastExecutedMinute = nextMinuteTime;
+            if (nextDirection !== 'WAIT') {
+                triggerZeroDelayShot(nextDirection, currentWager);
+            } else {
+                console.log("[SCORPIONS KING] Sinyal WAIT, menunda eksekusi di menit ini.");
             }
         }
-        requestAnimationFrame(tickSniperEngine);
     }
-    requestAnimationFrame(tickSniperEngine);
 
-    // Pantau perubahan saldo setiap 1 detik
+    // Bypass Background Tab Throttling (Agar tidak delay meski minimize tab)
+    const workerBlob = new Blob(["setInterval(() => self.postMessage('tick'), 10);"], { type: 'application/javascript' });
+    const worker = new Worker(URL.createObjectURL(workerBlob));
+    worker.onmessage = () => tickSniperEngine();
+
+    // Sinkronisasi DOM saldo setiap 2 detik
     readAndSyncBrokerBalance(true);
-    setInterval(() => readAndSyncBrokerBalance(false), 1000);
+    setInterval(() => readAndSyncBrokerBalance(false), 2000);
 
-    // 5. Terima Sinyal Instan dari Dashboard Web SCORPIONS KING
+    // 5. Terima Sinyal Sinkronisasi dari Dashboard Web SCORPIONS KING
     channel.onmessage = (event) => {
         const data = event.data;
-        if (data && data.source === 'BOT_TRADING_ENGINE_V1') {
-            nextDirection = data.direction;
+        if (data && data.source === 'BOT_TRADING_ENGINE_V1' && data.type === 'SYNC_STATE') {
+            nextDirection = data.nextSignal;
             currentWager = data.amount;
-            triggerZeroDelayShot(data.direction, data.amount);
+            preTriggerMs = data.preTriggerMs;
+            
+            // Sync tombol start/stop Dashboard dengan HUD
+            if (data.botStatus === 'RUNNING' && !isAutoRunning) {
+                toggleAutoRunStatus(true);
+            } else if (data.botStatus !== 'RUNNING' && isAutoRunning) {
+                toggleAutoRunStatus(false);
+            }
         }
     };
-
-    window.testBotClick = (dir = "UP") => triggerZeroDelayShot(dir, currentWager);
-    window.syncSaldoBroker = () => console.log("Saldo Terbaca:", readAndSyncBrokerBalance(true));
 })();`;
             }, [brokerPreset, selectedMethod, baseAmount, martingaleEnabled, martingaleMultiplier, maxMartingaleStep, nextSignalData, preShotLeadMs, callSelector, putSelector, amountSelector, balanceSelector, currentTradeAmount]);
 
