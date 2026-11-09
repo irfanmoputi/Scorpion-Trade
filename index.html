@@ -401,10 +401,10 @@
         const STRATEGIES = {
             anti_sideway: {
                 id: 'anti_sideway',
-                name: 'Metode 1: Anti-Sideway (Ping-Pong)',
+                name: 'Metode 1: Anti-Sideway (Follow Action)',
                 shortName: 'Anti-Sideway',
-                badge: 'Cocok Pasar Zig-Zag',
-                desc: 'Bot akan mengambil posisi BERLAWANAN arah jika transaksi sebelumnya PROFIT (WIN), atau mempertahankan arah kompensasi ketika pasar bergerak bolak-balik (Ping-Pong). Sangat ampuh di market yang tidak memiliki tren jelas.',
+                badge: 'Adaptif Arah Market',
+                desc: 'Bot beradaptasi mengikuti arah aktual terakhir. Jika OP Naik dan hasilnya Naik, OP selanjutnya Naik. Jika OP Naik tapi hasilnya Turun, OP selanjutnya berbalik menjadi Turun.',
             },
             follow_trend: {
                 id: 'follow_trend',
@@ -413,12 +413,12 @@
                 badge: 'Cocok Pasar Bullish/Bearish Kuat',
                 desc: 'Bot selalu membuka posisi MENGIKUTI warna candle terakhir yang baru saja tertutup. Jika candle terakhir Hijau (Naik), maka bot otomatis OP NAIK (CALL). Jika Merah (Turun), bot otomatis OP TURUN (PUT).',
             },
-            reversal_5: {
-                id: 'reversal_5',
-                name: 'Metode 3: Reversal 5 Candle (Sniper)',
-                shortName: 'Reversal 5 Candle',
-                badge: 'Akurasi Tinggi / Sabar',
-                desc: 'Bot memantau pergerakan chart secara pasif dan HANYA akan mengeksekusi OP secara otomatis berbalik arah (Lawan Tren) tepat setelah mendeteksi 5 candle beruntun dengan warna yang sama.',
+            wave_2x2: {
+                id: 'wave_2x2',
+                name: 'Metode 3: Siklus Wave 2x2',
+                shortName: 'Wave 2x2',
+                badge: 'Pola Akurasi Rotasi',
+                desc: 'Bot secara presisi dan disiplin mengeksekusi pola rotasi beruntun: 2x NAIK lalu 2x TURUN secara berulang (Siklus Wave). Sangat cocok untuk menangkap riak market stabil.',
             }
         };
 
@@ -445,6 +445,7 @@
             // State Eksekusi & Perhitungan Martingale
             const [currentStep, setCurrentStep] = useState(0);
             const [pingPongSignal, setPingPongSignal] = useState('UP'); // Default arah awal Metode 1
+            const [waveIndex, setWaveIndex] = useState(0); // Indeks siklus untuk Metode 3 (Wave 2x2)
             const [cumulativeProfit, setCumulativeProfit] = useState(0);
             const [initialBalance, setInitialBalance] = useState(1000000); // Modal Awal Akun (Rp)
             const [liveBrokerBalance, setLiveBrokerBalance] = useState(null); // Saldo terbaca langsung dari DOM Broker
@@ -545,7 +546,7 @@
                     return {
                         signal: pingPongSignal,
                         label: pingPongSignal === 'UP' ? 'NAIK (CALL)' : 'TURUN (PUT)',
-                        reason: 'Mode Ping-Pong aktif: Berpindah arah otomatis saat WIN untuk menghindari jebakan Sideway.'
+                        reason: 'Mode Adaptif aktif: Bot akan mengeksekusi OP sesuai dengan arah aktual (hasil) dari transaksi sebelumnya.'
                     };
                 }
                 if (selectedMethod === 'follow_trend') {
@@ -556,24 +557,17 @@
                         reason: `Mengikuti arah penutupan candle terakhir (${lastCandle === 'UP' ? 'HIJAU / NAIK' : 'MERAH / TURUN'}).`
                     };
                 }
-                if (selectedMethod === 'reversal_5') {
-                    if (streakInfo.count >= 5) {
-                        const reverseDir = streakInfo.dir === 'UP' ? 'DOWN' : 'UP';
-                        return {
-                            signal: reverseDir,
-                            label: reverseDir === 'UP' ? 'NAIK (CALL)' : 'TURUN (PUT)',
-                            reason: `Terdeteksi ${streakInfo.count} candle ${streakInfo.dir === 'UP' ? 'Hijau' : 'Merah'} beruntun! Sinyal Reversal siap dieksekusi.`
-                        };
-                    } else {
-                        return {
-                            signal: 'WAIT',
-                            label: `MENUNGGU (${streakInfo.count}/5 CANDLE)`,
-                            reason: `Baru terbentuk ${streakInfo.count} candle ${streakInfo.dir === 'UP' ? 'Hijau' : 'Merah'} searah. Bot menunggu hingga 5 candle beruntun.`
-                        };
-                    }
+                if (selectedMethod === 'wave_2x2') {
+                    const cycle = ['UP', 'UP', 'DOWN', 'DOWN'];
+                    const currentWaveDir = cycle[waveIndex % 4];
+                    return {
+                        signal: currentWaveDir,
+                        label: currentWaveDir === 'UP' ? 'NAIK (CALL)' : 'TURUN (PUT)',
+                        reason: `Siklus Wave 2x2 aktif. OP saat ini berada di urutan ke-${(waveIndex % 4) + 1} dari pola (Naik-Naik-Turun-Turun).`
+                    };
                 }
                 return { signal: 'UP', label: 'NAIK (CALL)', reason: '' };
-            }, [selectedMethod, pingPongSignal, candleHistory, streakInfo]);
+            }, [selectedMethod, pingPongSignal, candleHistory, streakInfo, waveIndex]);
 
             // ================= HITUNG NOMINAL OP BERIKUTNYA (MARTINGALE) =================
             const currentTradeAmount = useMemo(() => {
@@ -681,13 +675,13 @@
                 }
                 setCurrentStep(nextMartingaleStep);
 
-                // 6. Update Arah Ping-Pong jika menggunakan Metode 1 (Anti-Sideway)
+                // 6. Update Arah Logika Metode Selanjutnya
                 if (selectedMethod === 'anti_sideway') {
-                    if (isWin) {
-                        setPingPongSignal(activeSignal === 'UP' ? 'DOWN' : 'UP');
-                    } else {
-                        setPingPongSignal(activeSignal);
-                    }
+                    // Update Metode 1: Selalu sesuaikan sinyal OP berikutnya dengan hasil aktual candle yang baru tertutup
+                    setPingPongSignal(candleDirection);
+                } else if (selectedMethod === 'wave_2x2') {
+                    // Update Metode 3: Majukan urutan siklus gelombang
+                    setWaveIndex(prev => prev + 1);
                 }
 
                 // 7. Catat ke Tabel Log Aktivitas Real-Time
@@ -1483,12 +1477,14 @@
                                         onChange={(e) => {
                                             setSelectedMethod(e.target.value);
                                             setCurrentStep(0);
+                                            setWaveIndex(0); // Reset rotasi jika metode berganti
+                                            setPingPongSignal('UP'); // Reset ping-pong awal
                                         }}
                                         className="w-full bg-zinc-900/90 border border-amber-500/30 hover:border-amber-400 focus:border-amber-400 rounded-xl px-3.5 py-3 text-sm font-semibold text-white outline-none transition-colors cursor-pointer"
                                     >
-                                        <option value="anti_sideway">Metode 1: Anti-Sideway (Ping-Pong)</option>
+                                        <option value="anti_sideway">Metode 1: Anti-Sideway (Follow Action)</option>
                                         <option value="follow_trend">Metode 2: Trend Panjang (Follow Trend)</option>
-                                        <option value="reversal_5">Metode 3: Reversal 5 Candle (Otomatis Balik Arah)</option>
+                                        <option value="wave_2x2">Metode 3: Siklus Wave 2x2 (Pola 2 Naik, 2 Turun)</option>
                                     </select>
                                 </div>
 
