@@ -548,14 +548,14 @@
             // ================= GENERATE KODE JAVASCRIPT AUTO-CLICKER, AUTO-SYNC SERVER & SALDO REAL =================
             const generatedBridgeScript = useMemo(() => {
                 return `// =========================================================================
-// 🦂 SCORPIONS KING v2.2 - ANTI-ZOMBIE, STRICT 1x OP AWAL MENIT & MANUAL ARMING
-// PENTING: WAJIB tekan F5 (Refresh) di tab ${brokerPreset === 'stockity' ? 'Stockity' : 'Binomo'} sebelum paste script ini!
+// 🦂 SCORPIONS KING v2.3 - STRICT MANUAL ARMING, HTTP SERVER SYNC & 1x OP AWAL MENIT
+// WAJIB: Tekan F5 (Refresh) di tab ${brokerPreset === 'stockity' ? 'Stockity' : 'Binomo'} sebelum paste script ini!
 // =========================================================================
 (function() {
-    // Deteksi apakah ada script versi lama (v2.0) yang masih hidup di background tanpa cleanup
-    const legacyHudExists = !!document.getElementById('scorpions-king-floating-hud') && typeof window.__SCORPIONS_KING_CLEANUP__ !== 'function';
+    // Deteksi apakah ada script versi lama tanpa cleanup yang masih aktif di memori tab
+    const legacyHudExists = (!!document.getElementById('scorpions-king-floating-hud') || !!document.getElementById('scorpions-king-floating-hud-v22')) && typeof window.__SCORPIONS_KING_CLEANUP__ !== 'function';
 
-    // Hentikan instance script v2.1+ sebelumnya secara bersih
+    // Hentikan instance script sebelumnya secara bersih
     if (typeof window.__SCORPIONS_KING_CLEANUP__ === 'function') {
         try { window.__SCORPIONS_KING_CLEANUP__(); } catch (e) {}
     }
@@ -577,36 +577,35 @@
     };
 
     const channel = new BroadcastChannel('bot_trading_engine_v1_channel');
-    // WAJIB OFF (false) sampai user benar-benar menekan tombol "AKTIFKAN AUTO-SHOT"
+
+    // KUNCI PENGAMAN GANDA: Keduanya WAJIB true (hanya bisa aktif lewat klik mouse asli pada tombol AKTIFKAN)
     let isAutoRunning = false;
+    let userManuallyArmed = false;
     let activeMethod = CONFIG.strategy || "anti_sideway";
     let nextDirection = "${nextSignalData.signal === 'DOWN' ? 'DOWN' : 'UP'}";
     let currentWager = ${currentTradeAmount};
     let preTriggerMs = ${preShotLeadMs};
     let shotTotal = 0;
     let hudWaveIdx = 0;
-    let lastKnownBalance = null;
     let detectedAccountMode = "REAL";
 
-    // Variabel Sinkronisasi Jam Server Stockity / Binomo
+    // Variabel Sinkronisasi Waktu Server Stockity / Binomo
     let brokerTimeOffsetMs = 0;
     let isServerClockSynced = false;
     let lastObservedServerSec = -1;
-    let lastServerTimeStr = "--:--:--";
 
     // Kunci Pengaman Ketat: Maksimal 1x OP per Menit & Cooldown 45 Detik
     let lastExecutedMinuteSlot = -1;
     let lastShotTimestamp = 0;
 
-    console.log("%c[🦂 SCORPIONS KING v2.2] Mode STANDBY (OFF) Aktif di " + CONFIG.broker, "color:#FACC15; background:#050507; padding:6px 12px; border:1px solid #EAB308; border-radius:6px; font-weight:bold; font-size:13px;");
+    console.log("%c[🦂 SCORPIONS KING v2.3] Mode TERKUNCI (OFF) Aktif di " + CONFIG.broker, "color:#FACC15; background:#050507; padding:6px 12px; border:1px solid #EAB308; border-radius:6px; font-weight:bold; font-size:13px;");
     if (legacyHudExists) {
-        console.error("[⚠️ PERINGATAN] Script versi lama masih berjalan di latar belakang! WAJIB tekan F5 (Refresh) halaman Stockity terlebih dahulu lalu paste ulang script v2.2 ini!");
+        console.error("[⚠️ PERINGATAN KERAS] Script versi lama masih berjalan di latar belakang! WAJIB tekan F5 (Refresh) halaman Stockity terlebih dahulu lalu paste ulang script v2.3 ini!");
     }
 
     function parseCleanBalance(rawText) {
-        if (!rawText) return null;
+        if (!rawText || rawText.includes('→') || rawText.includes('->')) return null;
         let cleaned = rawText.replace(/\\s+/g, '');
-        // Hapus desimal sen (.00 atau ,00) di akhir angka
         cleaned = cleaned.replace(/[.,]\\d{2}(?!\\d)/, '');
         const digitsOnly = cleaned.replace(/[^0-9]/g, '');
         if (!digitsOnly) return null;
@@ -614,22 +613,23 @@
         return isNaN(val) ? null : val;
     }
 
-    // 1. Pembaca Saldo Akun Khusus Area Top Header (top <= 62px & sisi kanan layar)
+    // 1. Pembaca Saldo Akun Khusus Area Top Header (mengabaikan nominal OP aktif)
     function readAndSyncBrokerBalance(isInitial = false) {
         let foundBalance = null;
         let foundMode = detectedAccountMode;
         let rawFoundText = "";
 
-        const headerElements = document.querySelectorAll('header *, [class*="header"] *, [class*="balance"] *, [class*="account"] *');
-        const scanList = headerElements.length > 0 ? headerElements : document.querySelectorAll('*');
+        const scanList = document.querySelectorAll('header *, [class*="header"] *, [class*="balance"] *, [class*="account"] *');
+        const list = scanList.length > 0 ? scanList : document.querySelectorAll('*');
 
-        for (let i = 0; i < scanList.length; i++) {
-            const el = scanList[i];
-            if (el.closest && el.closest('#scorpions-king-floating-hud-v22')) continue;
+        for (let i = 0; i < list.length; i++) {
+            const el = list[i];
+            if (el.closest && el.closest('#scorpions-king-floating-hud-v23')) continue;
             const rect = el.getBoundingClientRect();
-            if (rect.top < 0 || rect.top > 62 || rect.width === 0 || rect.left < window.innerWidth * 0.45) continue;
+            if (rect.top < 0 || rect.top > 60 || rect.width === 0 || rect.left < window.innerWidth * 0.45) continue;
 
             const txt = (el.textContent || '').trim();
+            if (txt.includes('→') || txt.includes('->')) continue;
             if (/demo/i.test(txt) && txt.length < 40) foundMode = "DEMO";
             else if (/real|riil|live/i.test(txt) && txt.length < 40) foundMode = "REAL";
 
@@ -645,8 +645,6 @@
 
         if (foundBalance !== null) {
             detectedAccountMode = foundMode;
-            lastKnownBalance = foundBalance;
-
             const payload = {
                 source: 'BROKER_DOM_READER_V1',
                 balance: foundBalance,
@@ -658,8 +656,8 @@
             channel.postMessage(payload);
             try { localStorage.setItem('BOT_TRADING_LIVE_BALANCE', JSON.stringify(payload)); } catch(e) {}
 
-            const hudBal = document.getElementById('sk22-hud-balance');
-            const hudAccBadge = document.getElementById('sk22-hud-acc-badge');
+            const hudBal = document.getElementById('sk23-hud-balance');
+            const hudAccBadge = document.getElementById('sk23-hud-acc-badge');
             if (hudBal) hudBal.innerText = "Rp " + foundBalance.toLocaleString('id-ID');
             if (hudAccBadge) {
                 hudAccBadge.innerText = foundMode === "REAL" ? "REAL AKUN" : "DEMO AKUN";
@@ -671,22 +669,46 @@
         return null;
     }
 
-    // 2. AUTO-SYNC JAM SERVER STOCKITY (Membaca teks "HH:MM:SS GMT" di pojok kiri atas chart)
-    function syncWithBrokerServerClock() {
+    // 2A. AUTO-SYNC JAM SERVER VIA HTTP DATE HEADER (Tembus Canvas, Akurat Mengatasi Selisih Jam PC)
+    async function syncViaHttpServerHeader() {
+        try {
+            const t0 = Date.now();
+            const res = await fetch(window.location.href, { method: 'HEAD', cache: 'no-store' });
+            const t1 = Date.now();
+            const dateHeader = res.headers.get('Date');
+            if (dateHeader) {
+                const serverTs = new Date(dateHeader).getTime();
+                if (!isNaN(serverTs)) {
+                    const rttHalf = Math.round((t1 - t0) / 2);
+                    const estimatedServerNow = serverTs + 500 + rttHalf;
+                    brokerTimeOffsetMs = estimatedServerNow - t1;
+                    isServerClockSynced = true;
+
+                    const syncBadge = document.getElementById('sk23-sync-badge');
+                    if (syncBadge) {
+                        syncBadge.innerText = "SERVER SYNC ✓";
+                        syncBadge.style.color = "#22C55E";
+                    }
+                    console.log("%c[⏱️ SYNC SERVER BERHASIL] Koreksi waktu PC vs Server: " + (brokerTimeOffsetMs >= 0 ? "+" : "") + (brokerTimeOffsetMs / 1000).toFixed(2) + " detik", "color:#22C55E;font-weight:bold;");
+                }
+            }
+        } catch (e) {}
+    }
+
+    // 2B. Kalibrasi Halus Tambahan jika Teks Jam GMT Tersedia di DOM
+    function syncWithBrokerDomClock() {
         const candidates = document.querySelectorAll('div, span, p');
         for (let i = 0; i < candidates.length; i++) {
             const el = candidates[i];
             if (el.children.length > 0) continue;
-            if (el.closest && el.closest('#scorpions-king-floating-hud-v22')) continue;
-
+            if (el.closest && el.closest('#scorpions-king-floating-hud-v23')) continue;
             const rect = el.getBoundingClientRect();
-            if (rect.top < 40 || rect.top > 150 || rect.left > 320 || rect.width === 0) continue;
+            if (rect.top < 40 || rect.top > 160 || rect.left > 350 || rect.width === 0) continue;
 
             const txt = (el.textContent || '').trim();
             const match = txt.match(/(\\d{2}):(\\d{2}):(\\d{2})\\s*GMT/i);
             if (match) {
                 const serverSec = parseInt(match[3], 10);
-                lastServerTimeStr = match[1] + ":" + match[2] + ":" + match[3];
                 if (!isNaN(serverSec) && serverSec >= 0 && serverSec <= 59) {
                     if (lastObservedServerSec !== -1 && serverSec !== lastObservedServerSec) {
                         const localMsInMin = Date.now() % 60000;
@@ -696,10 +718,9 @@
                         if (diff < -30000) diff += 60000;
                         brokerTimeOffsetMs = diff;
                         isServerClockSynced = true;
-
-                        const syncBadge = document.getElementById('sk22-sync-badge');
+                        const syncBadge = document.getElementById('sk23-sync-badge');
                         if (syncBadge) {
-                            syncBadge.innerText = "SYNC " + lastServerTimeStr;
+                            syncBadge.innerText = "GMT SYNC ✓";
                             syncBadge.style.color = "#22C55E";
                         }
                     }
@@ -722,7 +743,7 @@
 
         for (let i = allElements.length - 1; i >= 0; i--) {
             const el = allElements[i];
-            if (el.closest && el.closest('#scorpions-king-floating-hud-v22')) continue;
+            if (el.closest && el.closest('#scorpions-king-floating-hud-v23')) continue;
             const rect = el.getBoundingClientRect();
 
             if (rect.left > rightHalf && rect.top > bottomHalf && rect.width > 20 && rect.height > 20) {
@@ -745,15 +766,14 @@
         return null;
     }
 
-    // 3. Eksekusi Instant Shot TUNGGAL (Hanya diizinkan saat isAutoRunning === true atau tombol manual ditekan)
+    // 3. Eksekusi Instant Shot TUNGGAL dengan Kunci Pengaman Ganda
     function triggerZeroDelayShot(direction, amount, isManualTest = false) {
-        // Kunci mutlak: jika bukan klik manual dan Auto-Shot belum diaktifkan, BATALKAN!
-        if (!isManualTest && !isAutoRunning) {
+        // KUNCI MUTLAK: Jika bukan klik tombol manual, wajib isAutoRunning === true DAN userManuallyArmed === true
+        if (!isManualTest && (!isAutoRunning || !userManuallyArmed)) {
             return;
         }
 
         const nowTs = Date.now();
-        // Kunci anti-double-shot untuk mode otomatis (minimal jeda 45 detik antar OP)
         if (!isManualTest && (nowTs - lastShotTimestamp) < 45000) {
             return;
         }
@@ -763,7 +783,7 @@
 
         if (!targetBtn) {
             console.warn("[SCORPIONS KING] ⚠️ Tombol " + direction + " tidak ditemukan!");
-            const hudStatus = document.getElementById('sk22-hud-status');
+            const hudStatus = document.getElementById('sk23-hud-status');
             if (hudStatus) hudStatus.innerText = "⚠️ Tombol Tidak Ditemukan";
             return;
         }
@@ -779,9 +799,9 @@
 
         shotTotal++;
         const latency = (performance.now() - t0).toFixed(2);
-        const hudStatus = document.getElementById('sk22-hud-status');
+        const hudStatus = document.getElementById('sk23-hud-status');
         if (hudStatus) {
-            hudStatus.innerText = "⚡ SHOT " + (direction === "UP" ? "HIJAU" : "MERAH") + " (" + latency + "ms)";
+            hudStatus.innerText = "⚡ SHOT #" + shotTotal + " " + (direction === "UP" ? "HIJAU" : "MERAH") + " (" + latency + "ms)";
         }
 
         if (activeMethod === 'wave_2x2') {
@@ -791,39 +811,39 @@
         }
 
         console.log(
-            "%c[⚡ 1x SHOT AWAL MENIT " + latency + "ms] OP " + (direction === "UP" ? "NAIK (CALL) 🟢" : "TURUN (PUT) 🔴") + " | Metode: " + (METHOD_NAMES[activeMethod] || activeMethod),
+            "%c[⚡ 1x SHOT AWAL MENIT #" + shotTotal + " | " + latency + "ms] OP " + (direction === "UP" ? "NAIK (CALL) 🟢" : "TURUN (PUT) 🔴"),
             "background:#09090b; color:#FACC15; font-weight:bold; padding:4px 8px; border-left:4px solid " + (direction === "UP" ? "#22c55e" : "#ef4444")
         );
         setTimeout(() => readAndSyncBrokerBalance(false), 600);
     }
 
-    // 4. Panel Floating HUD SCORPIONS KING v2.2 (ID Unik Anti-Tabrakan Script Lama)
-    const oldHud1 = document.getElementById('scorpions-king-floating-hud');
-    if (oldHud1) oldHud1.remove();
-    const oldHud2 = document.getElementById('scorpions-king-floating-hud-v22');
-    if (oldHud2) oldHud2.remove();
+    // 4. Panel Floating HUD SCORPIONS KING v2.3 (Digeser ke right:210px agar tidak menutupi tombol Hijau/Merah Stockity)
+    ['scorpions-king-floating-hud', 'scorpions-king-floating-hud-v22', 'scorpions-king-floating-hud-v23'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.remove();
+    });
 
     const hud = document.createElement('div');
-    hud.id = 'scorpions-king-floating-hud-v22';
-    hud.style.cssText = 'position:fixed; top:72px; right:20px; width:325px; background:linear-gradient(145deg,#12100B,#050507); border:1.5px solid #EAB308; border-radius:16px; padding:14px; color:#F4F4F6; font-family:Inter,sans-serif; z-index:999999; box-shadow:0 15px 40px rgba(0,0,0,0.92), 0 0 25px rgba(234,179,8,0.28); user-select:none;';
+    hud.id = 'scorpions-king-floating-hud-v23';
+    hud.style.cssText = 'position:fixed; top:72px; right:210px; width:330px; background:linear-gradient(145deg,#12100B,#050507); border:1.5px solid #EAB308; border-radius:16px; padding:14px; color:#F4F4F6; font-family:Inter,sans-serif; z-index:999999; box-shadow:0 15px 40px rgba(0,0,0,0.92), 0 0 25px rgba(234,179,8,0.28); user-select:none;';
     hud.innerHTML = \`
-        \${legacyHudExists ? '<div style="background:#991B1B;color:#FEF2F2;border:1px solid #EF4444;border-radius:9px;padding:7px 9px;font-size:10px;font-weight:800;margin-bottom:9px;line-height:1.4;">⚠️ SCRIPT LAMA MASIH AKTIF DI BACKGROUND!<br/>WAJIB tekan F5 (Refresh) halaman Stockity dulu, lalu paste ulang script ini agar tidak OP sendiri!</div>' : ''}
-        <div id="sk22-hud-drag" style="display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(234,179,8,0.25);padding-bottom:8px;margin-bottom:10px;cursor:move;">
+        \${legacyHudExists ? '<div style="background:#991B1B;color:#FEF2F2;border:1px solid #EF4444;border-radius:9px;padding:8px 10px;font-size:10px;font-weight:800;margin-bottom:9px;line-height:1.45;">⚠️ TERDETEKSI SCRIPT LAMA DI MEMORI!<br/>WAJIB tekan F5 (Refresh) halaman Stockity sekarang juga lalu paste ulang script v2.3 ini agar tidak ada OP liar!</div>' : ''}
+        <div id="sk23-hud-drag" style="display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(234,179,8,0.25);padding-bottom:8px;margin-bottom:10px;cursor:move;">
             <div style="display:flex;align-items:center;gap:8px;">
                 <span style="font-size:18px;">🦂</span>
                 <div>
-                    <div style="font-weight:900;font-size:13px;letter-spacing:1px;color:#FDE047;">SCORPIONS KING <span style="font-size:9px;color:#A1A1AA;">v2.2</span></div>
-                    <div id="sk22-hud-subtitle" style="font-size:10px;color:#A1A1AA;">\${CONFIG.broker} • \${METHOD_NAMES[activeMethod] || activeMethod}</div>
+                    <div style="font-weight:900;font-size:13px;letter-spacing:1px;color:#FDE047;">SCORPIONS KING <span style="font-size:9px;color:#22C55E;">v2.3</span></div>
+                    <div id="sk23-hud-subtitle" style="font-size:10px;color:#A1A1AA;">\${CONFIG.broker} • \${METHOD_NAMES[activeMethod] || activeMethod}</div>
                 </div>
             </div>
-            <span id="sk22-hud-badge" style="font-size:10px;font-weight:800;padding:3px 8px;border-radius:99px;background:#27272A;color:#FDE047;border:1px solid #EAB308;">STANDBY (OFF)</span>
+            <span id="sk23-hud-badge" style="font-size:10px;font-weight:800;padding:3px 8px;border-radius:99px;background:#27272A;color:#FDE047;border:1px solid #EAB308;">🔒 TERKUNCI (OFF)</span>
         </div>
 
         <div style="margin-bottom:9px;">
             <label style="display:block;font-size:9px;font-weight:700;color:#FDE047;letter-spacing:0.5px;margin-bottom:4px;text-transform:uppercase;">
                 Pilih Metode Algoritma Trading
             </label>
-            <select id="sk22-hud-method" style="width:100%;background:#09090B;color:#FFFFFF;border:1px solid rgba(234,179,8,0.45);border-radius:9px;padding:6px 8px;font-size:11px;font-weight:700;outline:none;cursor:pointer;">
+            <select id="sk23-hud-method" style="width:100%;background:#09090B;color:#FFFFFF;border:1px solid rgba(234,179,8,0.45);border-radius:9px;padding:6px 8px;font-size:11px;font-weight:700;outline:none;cursor:pointer;">
                 <option value="anti_sideway">Metode 1: Anti-Sideway (Follow Action)</option>
                 <option value="follow_trend">Metode 2: Trend Panjang (Follow Trend)</option>
                 <option value="wave_2x2">Metode 3: Siklus Wave 2x2 (2 Naik, 2 Turun)</option>
@@ -834,55 +854,60 @@
             <div style="background:#09090B;padding:7px 9px;border-radius:10px;border:1px solid rgba(234,179,8,0.25);">
                 <div style="display:flex;justify-content:space-between;align-items:center;">
                     <span style="color:#A1A1AA;font-size:9px;font-weight:700;">SALDO AKUN</span>
-                    <span id="sk22-hud-acc-badge" style="font-size:8px;font-weight:800;padding:1px 5px;border-radius:4px;background:#16A34A;color:#050507;">REAL</span>
+                    <span id="sk23-hud-acc-badge" style="font-size:8px;font-weight:800;padding:1px 5px;border-radius:4px;background:#16A34A;color:#050507;">REAL</span>
                 </div>
-                <div id="sk22-hud-balance" style="font-weight:800;color:#FEF08A;margin-top:3px;font-size:12px;">Membaca...</div>
+                <div id="sk23-hud-balance" style="font-weight:800;color:#FEF08A;margin-top:3px;font-size:12px;">Membaca...</div>
             </div>
             <div style="background:#09090B;padding:7px 9px;border-radius:10px;border:1px solid rgba(234,179,8,0.25);">
                 <div style="display:flex;justify-content:space-between;align-items:center;">
                     <span style="color:#A1A1AA;font-size:9px;font-weight:700;">DURASI 1M</span>
-                    <span id="sk22-sync-badge" style="font-size:8px;font-weight:800;color:#FACC15;">SYNC...</span>
+                    <span id="sk23-sync-badge" style="font-size:8px;font-weight:800;color:#FACC15;">SYNC...</span>
                 </div>
-                <div id="sk22-hud-timer" style="font-weight:800;color:#22C55E;font-family:monospace;font-size:13px;margin-top:2px;">00:00.000</div>
+                <div id="sk23-hud-timer" style="font-weight:800;color:#22C55E;font-family:monospace;font-size:13px;margin-top:2px;">00:00.000</div>
                 <div style="display:flex;gap:3px;margin-top:4px;">
-                    <button id="sk22-btn-min5" style="flex:1;background:#27272A;border:none;color:#E4E4E7;font-size:9px;padding:2px 0;border-radius:4px;cursor:pointer;">-5s</button>
-                    <button id="sk22-btn-min" style="flex:1;background:#3F3F46;border:none;color:white;font-size:9px;padding:2px 0;border-radius:4px;cursor:pointer;">-1s</button>
-                    <button id="sk22-btn-plus" style="flex:1;background:#3F3F46;border:none;color:white;font-size:9px;padding:2px 0;border-radius:4px;cursor:pointer;">+1s</button>
-                    <button id="sk22-btn-plus5" style="flex:1;background:#27272A;border:none;color:#E4E4E7;font-size:9px;padding:2px 0;border-radius:4px;cursor:pointer;">+5s</button>
+                    <button id="sk23-btn-min5" style="flex:1;background:#27272A;border:none;color:#E4E4E7;font-size:9px;padding:2px 0;border-radius:4px;cursor:pointer;">-5s</button>
+                    <button id="sk23-btn-min" style="flex:1;background:#3F3F46;border:none;color:white;font-size:9px;padding:2px 0;border-radius:4px;cursor:pointer;">-1s</button>
+                    <button id="sk23-btn-plus" style="flex:1;background:#3F3F46;border:none;color:white;font-size:9px;padding:2px 0;border-radius:4px;cursor:pointer;">+1s</button>
+                    <button id="sk23-btn-plus5" style="flex:1;background:#27272A;border:none;color:#E4E4E7;font-size:9px;padding:2px 0;border-radius:4px;cursor:pointer;">+5s</button>
                 </div>
             </div>
         </div>
 
         <div style="background:#09090B;padding:8px 10px;border-radius:10px;border:1px solid rgba(255,255,255,0.08);margin-bottom:9px;display:flex;justify-content:space-between;align-items:center;font-size:11px;">
-            <span>Sinyal: <strong id="sk22-hud-dir" style="color:#22C55E;">\${nextDirection === 'UP' ? 'NAIK (CALL)' : 'TURUN (PUT)'}</strong></span>
-            <span id="sk22-hud-status" style="font-size:10px;color:#FACC15;">Standby (Belum Aktif)</span>
+            <span>Sinyal: <strong id="sk23-hud-dir" style="color:#22C55E;">\${nextDirection === 'UP' ? 'NAIK (CALL)' : 'TURUN (PUT)'}</strong></span>
+            <span id="sk23-hud-status" style="font-size:10px;color:#FACC15;">Terkunci (Belum Aktif)</span>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;">
-            <button id="sk22-btn-call" style="padding:8px;border-radius:9px;background:#16A34A;color:#050507;font-weight:800;font-size:11px;border:none;cursor:pointer;">⚡ SHOT HIJAU</button>
-            <button id="sk22-btn-put" style="padding:8px;border-radius:9px;background:#DC2626;color:#FFFFFF;font-weight:800;font-size:11px;border:none;cursor:pointer;">⚡ SHOT MERAH</button>
+            <button id="sk23-btn-call" style="padding:8px;border-radius:9px;background:#16A34A;color:#050507;font-weight:800;font-size:11px;border:none;cursor:pointer;">⚡ TEST HIJAU</button>
+            <button id="sk23-btn-put" style="padding:8px;border-radius:9px;background:#DC2626;color:#FFFFFF;font-weight:800;font-size:11px;border:none;cursor:pointer;">⚡ TEST MERAH</button>
         </div>
-        <button id="sk22-btn-toggle" style="width:100%;padding:9px;border-radius:10px;background:linear-gradient(180deg,#FEF08A,#CA8A04);color:#050507;font-weight:900;font-size:11px;border:none;cursor:pointer;letter-spacing:0.5px;">
+        <button id="sk23-btn-toggle" style="width:100%;padding:10px;border-radius:10px;background:linear-gradient(180deg,#FEF08A,#CA8A04);color:#050507;font-weight:900;font-size:11px;border:none;cursor:pointer;letter-spacing:0.5px;">
             ▶ AKTIFKAN AUTO-SHOT AWAL MENIT (00:00)
         </button>
     \`;
+
+    // Cegah klik pada HUD bocor ke elemen Stockity di belakangnya
+    ['click', 'mousedown', 'pointerdown', 'mouseup', 'pointerup'].forEach(evt => {
+        hud.addEventListener(evt, (e) => e.stopPropagation());
+    });
     document.body.appendChild(hud);
 
-    const methodSelect = document.getElementById('sk22-hud-method');
+    const methodSelect = document.getElementById('sk23-hud-method');
     if (methodSelect) {
         methodSelect.value = activeMethod;
         methodSelect.onchange = (e) => {
             activeMethod = e.target.value;
             hudWaveIdx = 0;
-            const subEl = document.getElementById('sk22-hud-subtitle');
+            const subEl = document.getElementById('sk23-hud-subtitle');
             if (subEl) subEl.innerText = CONFIG.broker + " • " + (METHOD_NAMES[activeMethod] || activeMethod);
-            const hudStatus = document.getElementById('sk22-hud-status');
+            const hudStatus = document.getElementById('sk23-hud-status');
             if (hudStatus) hudStatus.innerText = "Metode Diubah!";
             channel.postMessage({ source: 'BROKER_HUD_V1', type: 'CHANGE_STRATEGY', method: activeMethod });
         };
     }
 
     let isDragging = false, offsetX = 0, offsetY = 0;
-    const dragHeader = document.getElementById('sk22-hud-drag');
+    const dragHeader = document.getElementById('sk23-hud-drag');
     const onMouseMove = (e) => {
         if (!isDragging) return;
         hud.style.right = 'auto';
@@ -898,37 +923,54 @@
     window.addEventListener('mousemove', onMouseMove);
     window.addEventListener('mouseup', onMouseUp);
 
-    document.getElementById('sk22-btn-call').onclick = () => { triggerZeroDelayShot("UP", currentWager, true); };
-    document.getElementById('sk22-btn-put').onclick = () => { triggerZeroDelayShot("DOWN", currentWager, true); };
+    document.getElementById('sk23-btn-call').onclick = (e) => { e.stopPropagation(); triggerZeroDelayShot("UP", currentWager, true); };
+    document.getElementById('sk23-btn-put').onclick = (e) => { e.stopPropagation(); triggerZeroDelayShot("DOWN", currentWager, true); };
 
     function adjustManualOffset(deltaMs) {
         brokerTimeOffsetMs += deltaMs;
-        const syncBadge = document.getElementById('sk22-sync-badge');
+        const syncBadge = document.getElementById('sk23-sync-badge');
         if (syncBadge) { syncBadge.innerText = "MANUAL"; syncBadge.style.color = "#FACC15"; }
-        const hudStatus = document.getElementById('sk22-hud-status');
+        const hudStatus = document.getElementById('sk23-hud-status');
         if (hudStatus) hudStatus.innerText = "⏱️ Kalibrasi: " + (brokerTimeOffsetMs >= 0 ? "+" : "") + (brokerTimeOffsetMs / 1000).toFixed(1) + "s";
     }
-    document.getElementById('sk22-btn-min5').onclick = () => adjustManualOffset(-5000);
-    document.getElementById('sk22-btn-min').onclick = () => adjustManualOffset(-1000);
-    document.getElementById('sk22-btn-plus').onclick = () => adjustManualOffset(1000);
-    document.getElementById('sk22-btn-plus5').onclick = () => adjustManualOffset(5000);
+    document.getElementById('sk23-btn-min5').onclick = () => adjustManualOffset(-5000);
+    document.getElementById('sk23-btn-min').onclick = () => adjustManualOffset(-1000);
+    document.getElementById('sk23-btn-plus').onclick = () => adjustManualOffset(1000);
+    document.getElementById('sk23-btn-plus5').onclick = () => adjustManualOffset(5000);
 
-    function toggleAutoRunStatus(forceStatus = null) {
-        isAutoRunning = forceStatus !== null ? forceStatus : !isAutoRunning;
-        const btnToggle = document.getElementById('sk22-btn-toggle');
-        const badge = document.getElementById('sk22-hud-badge');
-        const hudStatus = document.getElementById('sk22-hud-status');
+    function toggleAutoRunStatus(forceStatus = null, isTrustedUserClick = false) {
+        if (legacyHudExists) {
+            const hudStatus = document.getElementById('sk23-hud-status');
+            if (hudStatus) hudStatus.innerText = "⚠️ WAJIB F5 DULU!";
+            return;
+        }
+        const nextState = forceStatus !== null ? forceStatus : !isAutoRunning;
+        if (nextState === true && !isTrustedUserClick) {
+            return; // Tolak aktivasi otomatis yang bukan berasal dari klik pengguna
+        }
+        isAutoRunning = nextState;
+        userManuallyArmed = nextState ? true : false;
+
+        const btnToggle = document.getElementById('sk23-btn-toggle');
+        const badge = document.getElementById('sk23-hud-badge');
+        const hudStatus = document.getElementById('sk23-hud-status');
         if (isAutoRunning) {
+            // Kunci slot menit saat ini agar tidak langsung menembak di detik saat tombol baru diklik
+            const adjustedNow = Date.now() + brokerTimeOffsetMs;
+            lastExecutedMinuteSlot = Math.floor(adjustedNow / 60000);
             if (btnToggle) { btnToggle.innerText = "⏹ HENTIKAN AUTO-SHOT"; btnToggle.style.background = "#DC2626"; btnToggle.style.color = "#FFFFFF"; }
-            if (badge) { badge.innerText = "AUTO-SHOT ON"; badge.style.background = "#16A34A"; badge.style.color = "#050507"; }
+            if (badge) { badge.innerText = "🟢 AUTO-SHOT ON"; badge.style.background = "#16A34A"; badge.style.color = "#050507"; }
             if (hudStatus) hudStatus.innerText = "Menunggu 00:00 (1x OP)";
         } else {
             if (btnToggle) { btnToggle.innerText = "▶ AKTIFKAN AUTO-SHOT AWAL MENIT (00:00)"; btnToggle.style.background = "linear-gradient(180deg,#FEF08A,#CA8A04)"; btnToggle.style.color = "#050507"; }
-            if (badge) { badge.innerText = "STANDBY (OFF)"; badge.style.background = "#27272A"; badge.style.color = "#FDE047"; }
-            if (hudStatus) hudStatus.innerText = "Standby (Belum Aktif)";
+            if (badge) { badge.innerText = "🔒 TERKUNCI (OFF)"; badge.style.background = "#27272A"; badge.style.color = "#FDE047"; }
+            if (hudStatus) hudStatus.innerText = "Terkunci (Belum Aktif)";
         }
     }
-    document.getElementById('sk22-btn-toggle').onclick = () => toggleAutoRunStatus();
+    document.getElementById('sk23-btn-toggle').onclick = (e) => {
+        e.stopPropagation();
+        toggleAutoRunStatus(null, e.isTrusted === true);
+    };
 
     function tickSniperEngine() {
         const adjustedNow = Date.now() + brokerTimeOffsetMs;
@@ -941,21 +983,25 @@
         const remSec = Math.floor(msUntilNext / 1000) % 60;
         const remMs = Math.floor(msUntilNext % 1000);
 
-        const timerEl = document.getElementById('sk22-hud-timer');
+        const timerEl = document.getElementById('sk23-hud-timer');
         if (timerEl) {
             timerEl.innerText = "00:" + String(remSec).padStart(2, '0') + "." + String(remMs).padStart(3, '0');
             timerEl.style.color = remSec <= 3 ? "#FACC15" : "#22C55E";
         }
 
-        const dirEl = document.getElementById('sk22-hud-dir');
+        const dirEl = document.getElementById('sk23-hud-dir');
         if (dirEl) {
             dirEl.innerText = nextDirection === "UP" ? "NAIK (CALL)" : nextDirection === "DOWN" ? "TURUN (PUT)" : "WAITING";
             dirEl.style.color = nextDirection === "UP" ? "#22C55E" : nextDirection === "DOWN" ? "#EF4444" : "#A1A1AA";
         }
 
-        // EKSEKUSI KETAT: Hanya menembak jika tombol AKTIFKAN AUTO-SHOT sudah ditekan (isAutoRunning === true),
-        // hanya tepat di awal menit (msUntilNext <= preTriggerMs), dan maksimal 1x per slot menit!
-        if (isAutoRunning === true && msUntilNext <= preTriggerMs && lastExecutedMinuteSlot !== nextMinuteSlot) {
+        // JIKA BELUM DIAKTIFKAN OLEH KLIK PENGGUNA, BERHENTI DI SINI (TIDAK AKAN PERNAH OP!)
+        if (!isAutoRunning || !userManuallyArmed) {
+            return;
+        }
+
+        // EKSEKUSI KETAT: Hanya tepat di pergantian menit (msUntilNext <= preTriggerMs) dan maksimal 1x per slot menit
+        if (msUntilNext <= preTriggerMs && lastExecutedMinuteSlot !== nextMinuteSlot) {
             lastExecutedMinuteSlot = nextMinuteSlot;
             if (nextDirection !== 'WAIT') {
                 triggerZeroDelayShot(nextDirection, currentWager, false);
@@ -963,12 +1009,15 @@
         }
     }
 
-    const syncClockInterval = setInterval(() => syncWithBrokerServerClock(), 40);
+    // Jalankan Sinkronisasi Jam Server segera + ulangi tiap 30 detik agar tetap presisi
+    syncViaHttpServerHeader();
+    const httpSyncInterval = setInterval(() => syncViaHttpServerHeader(), 30000);
+    const domClockInterval = setInterval(() => syncWithBrokerDomClock(), 60);
     const sniperInterval = setInterval(() => tickSniperEngine(), 15);
     readAndSyncBrokerBalance(true);
     const balanceInterval = setInterval(() => readAndSyncBrokerBalance(false), 1500);
 
-    // Sinkronisasi parameter dari Dashboard TANPA memaksa Auto-Shot menyala sendiri
+    // Sinkronisasi parameter dari Dashboard TANPA PERNAH menyalakan Auto-Shot sendiri
     channel.onmessage = (event) => {
         const data = event.data;
         if (data && data.source === 'BOT_TRADING_ENGINE_V1' && data.type === 'SYNC_STATE') {
@@ -978,24 +1027,24 @@
             if (data.selectedMethod && data.selectedMethod !== activeMethod) {
                 activeMethod = data.selectedMethod;
                 if (methodSelect) methodSelect.value = activeMethod;
-                const subEl = document.getElementById('sk22-hud-subtitle');
+                const subEl = document.getElementById('sk23-hud-subtitle');
                 if (subEl) subEl.innerText = CONFIG.broker + " • " + (METHOD_NAMES[activeMethod] || activeMethod);
             }
-
             if (data.botStatus === 'PAUSED' && isAutoRunning) {
-                toggleAutoRunStatus(false);
+                toggleAutoRunStatus(false, true);
             }
         }
     };
 
     window.__SCORPIONS_KING_CLEANUP__ = function() {
-        clearInterval(syncClockInterval);
+        clearInterval(httpSyncInterval);
+        clearInterval(domClockInterval);
         clearInterval(sniperInterval);
         clearInterval(balanceInterval);
         window.removeEventListener('mousemove', onMouseMove);
         window.removeEventListener('mouseup', onMouseUp);
         try { channel.close(); } catch (e) {}
-        const el = document.getElementById('scorpions-king-floating-hud-v22');
+        const el = document.getElementById('scorpions-king-floating-hud-v23');
         if (el) el.remove();
     };
 })();`;
@@ -1566,7 +1615,7 @@
                                 {activeRightTab === 'script' && (
                                     <div className="flex-1 flex flex-col gap-3">
                                         <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 text-[11px] text-amber-100 leading-relaxed">
-                                            <strong className="text-amber-300">✨ Fitur Baru v2.2:</strong> Detektor Anti-Zombie Script, penguncian ketat <strong>STANDBY (OFF)</strong> sampai tombol Aktifkan ditekan, Auto-Sync jam server (<span className="font-mono">GMT</span>), dan 1x OP awal menit.
+                                            <strong className="text-amber-300">✨ Perbaikan Ketat v2.3:</strong> Kunci ganda <strong>🔒 TERKUNCI (OFF)</strong> (wajib klik manual pengguna), <strong>HTTP Server Sync</strong> (tembus canvas, anti selisih detik PC), posisi HUD tidak menutupi tombol OP, dan ketat 1x OP awal menit.
                                         </div>
 
                                         <button
